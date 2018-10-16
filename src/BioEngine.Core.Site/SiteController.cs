@@ -44,11 +44,11 @@ namespace BioEngine.Core.Site
         {
             var result = await Repository.GetAll(GetQueryContext());
             return View("List",
-                new ListViewModel<TEntity, TEntityPk>(await GetPageContext(result.items), result.items,
+                new ListViewModel<TEntity, TEntityPk>(await GetPageContext(result.items.ToArray()), result.items,
                     result.itemsCount));
         }
 
-        protected virtual async Task<PageViewModelContext> GetPageContext(IEnumerable<TEntity> entities)
+        protected virtual async Task<PageViewModelContext> GetPageContext(TEntity[] entities)
         {
             var context = new PageViewModelContext(SettingsProvider, Site);
             if (PageFilters != null && PageFilters.Any())
