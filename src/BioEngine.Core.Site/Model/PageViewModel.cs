@@ -4,7 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using BioEngine.Core.Entities;
 using BioEngine.Core.Interfaces;
-using BioEngine.Core.Providers;
+using BioEngine.Core.Seo;
+using BioEngine.Core.Settings;
 using BioEngine.Core.Site.Filters;
 using HtmlAgilityPack;
 

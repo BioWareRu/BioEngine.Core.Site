@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BioEngine.Core.DB;
 using BioEngine.Core.Interfaces;
-using BioEngine.Core.Providers;
+using BioEngine.Core.Settings;
 using BioEngine.Core.Site.Filters;
 using BioEngine.Core.Site.Model;
 using BioEngine.Core.Web;
