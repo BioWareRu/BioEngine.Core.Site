@@ -13,7 +13,7 @@ namespace BioEngine.Core.Site.Model
     public abstract class PageViewModel
     {
         private readonly Entities.Site _site;
-        private readonly Entities.Section _section;
+        private readonly Section _section;
         private readonly SettingsProvider _settingsProvider;
         private readonly Dictionary<string, object> _features;
 
@@ -39,7 +39,7 @@ namespace BioEngine.Core.Site.Model
 
         public string SiteTitle => _site.Title;
 
-        public PageViewModel(PageViewModelContext context)
+        protected PageViewModel(PageViewModelContext context)
         {
             _site = context.Site;
             _section = context.Section;
@@ -55,8 +55,18 @@ namespace BioEngine.Core.Site.Model
         {
             if (_meta == null)
             {
-                _meta = new PageMetaModel {Title = _site.Title};
-                var seoSettings = await _settingsProvider.Get<SeoSettings>(_site);
+                _meta = new PageMetaModel {Title = _site.Title, CurrentUrl = new Uri(_site.Url)};
+                SeoSettings seoSettings = null;
+                if (_section != null)
+                {
+                    seoSettings = await _settingsProvider.Get<SeoSettings>(_section);
+                }
+
+                if (seoSettings == null)
+                {
+                    seoSettings = await _settingsProvider.Get<SeoSettings>(_site);
+                }
+
                 if (seoSettings != null)
                 {
                     _meta.Description = seoSettings.Description;
