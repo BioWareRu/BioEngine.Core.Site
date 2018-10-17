@@ -10,9 +10,9 @@ namespace BioEngine.Core.Site.Filters
     {
         bool CanProcess(Type type);
 
-        Task<bool> ProcessPage(PageViewModelContext viewModel);
+        Task<bool> ProcessPageAsync(PageViewModelContext viewModel);
 
-        Task<bool> ProcessEntities<TEntity, TEntityPk>(PageViewModelContext viewModel, IEnumerable<TEntity> entities)
+        Task<bool> ProcessEntitiesAsync<TEntity, TEntityPk>(PageViewModelContext viewModel, IEnumerable<TEntity> entities)
             where TEntity : class, IEntity<TEntityPk>;
     }
 

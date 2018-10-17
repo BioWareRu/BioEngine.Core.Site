@@ -40,25 +40,25 @@ namespace BioEngine.Core.Site
         }
 
         [HttpGet]
-        public virtual async Task<IActionResult> List()
+        public virtual async Task<IActionResult> ListAsync()
         {
-            var result = await Repository.GetAll(GetQueryContext());
+            var result = await Repository.GetAllAsync(GetQueryContext());
             return View("List",
-                new ListViewModel<TEntity, TEntityPk>(await GetPageContext(result.items.ToArray()), result.items,
+                new ListViewModel<TEntity, TEntityPk>(await GetPageContextAsync(result.items.ToArray()), result.items,
                     result.itemsCount));
         }
 
-        protected virtual async Task<PageViewModelContext> GetPageContext(TEntity[] entities)
+        protected virtual async Task<PageViewModelContext> GetPageContextAsync(TEntity[] entities)
         {
             var context = new PageViewModelContext(SettingsProvider, Site);
             if (PageFilters != null && PageFilters.Any())
             {
                 foreach (var pageFilter in PageFilters)
                 {
-                    await pageFilter.ProcessPage(context);
+                    await pageFilter.ProcessPageAsync(context);
                     if (pageFilter.CanProcess(typeof(TEntity)))
                     {
-                        await pageFilter.ProcessEntities<TEntity, TEntityPk>(context, entities);
+                        await pageFilter.ProcessEntitiesAsync<TEntity, TEntityPk>(context, entities);
                     }
                 }
             }
@@ -67,15 +67,15 @@ namespace BioEngine.Core.Site
         }
 
         [HttpGet("{id}-{url}.html")]
-        public virtual async Task<IActionResult> Show(TEntityPk id, string url)
+        public virtual async Task<IActionResult> ShowAsync(TEntityPk id, string url)
         {
-            var entity = await Repository.GetById(id);
+            var entity = await Repository.GetByIdAsync(id);
             if (entity == null)
             {
                 return NotFound();
             }
 
-            return View("Show", new EntityViewModel<TEntity, TEntityPk>(await GetPageContext(new[] {entity}), entity));
+            return View("Show", new EntityViewModel<TEntity, TEntityPk>(await GetPageContextAsync(new[] {entity}), entity));
         }
 
         [PublicAPI]

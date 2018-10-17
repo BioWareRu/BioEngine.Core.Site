@@ -52,7 +52,7 @@ namespace BioEngine.Core.Site.Model
 
         private PageMetaModel _meta;
 
-        public virtual async Task<PageMetaModel> GetMeta()
+        public virtual async Task<PageMetaModel> GetMetaAsync()
         {
             if (_meta == null)
             {
@@ -60,12 +60,12 @@ namespace BioEngine.Core.Site.Model
                 SeoSettings seoSettings = null;
                 if (_section != null)
                 {
-                    seoSettings = await _settingsProvider.Get<SeoSettings>(_section);
+                    seoSettings = await _settingsProvider.GetAsync<SeoSettings>(_section);
                 }
 
                 if (seoSettings == null)
                 {
-                    seoSettings = await _settingsProvider.Get<SeoSettings>(_site);
+                    seoSettings = await _settingsProvider.GetAsync<SeoSettings>(_site);
                 }
 
                 if (seoSettings != null)

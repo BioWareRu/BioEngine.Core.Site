@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using BioEngine.Core.Modules;
 using BioEngine.Core.Repository;
@@ -57,10 +58,11 @@ namespace BioEngine.Core.Site
         }
 
         [UsedImplicitly]
+        [SuppressMessage("AsyncUsage.CSharp.Naming", "UseAsyncSuffix", Justification = "Reviewed.")]
         public async Task Invoke(HttpContext context)
         {
             var repository = context.RequestServices.GetRequiredService<SitesRepository>();
-            var site = await repository.GetById(_options.SiteId);
+            var site = await repository.GetByIdAsync(_options.SiteId);
             if (site == null)
             {
                 context.Response.StatusCode = 401;
