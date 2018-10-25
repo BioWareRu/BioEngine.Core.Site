@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BioEngine.Core.DB;
 using BioEngine.Core.Interfaces;
-using BioEngine.Core.Settings;
+using BioEngine.Core.Properties;
 using BioEngine.Core.Site.Filters;
 using BioEngine.Core.Site.Model;
 using BioEngine.Core.Web;
@@ -50,7 +50,7 @@ namespace BioEngine.Core.Site
 
         protected virtual async Task<PageViewModelContext> GetPageContextAsync(TEntity[] entities)
         {
-            var context = new PageViewModelContext(SettingsProvider, Site);
+            var context = new PageViewModelContext(PropertiesProvider, Site);
             if (PageFilters != null && PageFilters.Any())
             {
                 foreach (var pageFilter in PageFilters)
@@ -106,9 +106,9 @@ namespace BioEngine.Core.Site
     {
         public IEnumerable<IPageFilter> PageFilters { get; }
 
-        public SiteControllerContext(ILoggerFactory loggerFactory, IStorage storage, SettingsProvider settingsProvider,
+        public SiteControllerContext(ILoggerFactory loggerFactory, IStorage storage, PropertiesProvider propertiesProvider,
             IBioRepository<TEntity, TEntityPk> repository, IEnumerable<IPageFilter> pageFilters) : base(loggerFactory, storage,
-            settingsProvider, repository)
+            propertiesProvider, repository)
         {
             PageFilters = pageFilters;
         }

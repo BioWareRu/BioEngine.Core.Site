@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using BioEngine.Core.Entities;
 using BioEngine.Core.Interfaces;
+using BioEngine.Core.Properties;
 using BioEngine.Core.Seo;
-using BioEngine.Core.Settings;
 using BioEngine.Core.Site.Filters;
 using HtmlAgilityPack;
 
@@ -15,7 +15,7 @@ namespace BioEngine.Core.Site.Model
     {
         private readonly Entities.Site _site;
         private readonly Section _section;
-        private readonly SettingsProvider _settingsProvider;
+        private readonly PropertiesProvider _propertiesProvider;
         private readonly Dictionary<string, object> _features;
 
         public TFeature GetFeature<TFeature>() where TFeature : class
@@ -44,7 +44,7 @@ namespace BioEngine.Core.Site.Model
         {
             _site = context.Site;
             _section = context.Section;
-            _settingsProvider = context.SettingsProvider;
+            _propertiesProvider = context.PropertiesProvider;
             _features = context.Features;
         }
 
@@ -57,21 +57,21 @@ namespace BioEngine.Core.Site.Model
             if (_meta == null)
             {
                 _meta = new PageMetaModel {Title = _site.Title, CurrentUrl = new Uri(_site.Url)};
-                SeoSettings seoSettings = null;
+                SeoPropertiesSet seoPropertiesSet = null;
                 if (_section != null)
                 {
-                    seoSettings = await _settingsProvider.GetAsync<SeoSettings>(_section);
+                    seoPropertiesSet = await _propertiesProvider.GetAsync<SeoPropertiesSet>(_section);
                 }
 
-                if (seoSettings == null)
+                if (seoPropertiesSet == null)
                 {
-                    seoSettings = await _settingsProvider.GetAsync<SeoSettings>(_site);
+                    seoPropertiesSet = await _propertiesProvider.GetAsync<SeoPropertiesSet>(_site);
                 }
 
-                if (seoSettings != null)
+                if (seoPropertiesSet != null)
                 {
-                    _meta.Description = seoSettings.Description;
-                    _meta.Keywords = seoSettings.Keywords;
+                    _meta.Description = seoPropertiesSet.Description;
+                    _meta.Keywords = seoPropertiesSet.Keywords;
                 }
             }
 
@@ -155,14 +155,14 @@ namespace BioEngine.Core.Site.Model
 
     public class PageViewModelContext
     {
-        public PageViewModelContext(SettingsProvider settingsProvider, Entities.Site site, Section section = null)
+        public PageViewModelContext(PropertiesProvider propertiesProvider, Entities.Site site, Section section = null)
         {
-            SettingsProvider = settingsProvider;
+            PropertiesProvider = propertiesProvider;
             Site = site;
             Section = section;
         }
 
-        public SettingsProvider SettingsProvider { get; }
+        public PropertiesProvider PropertiesProvider { get; }
         public Entities.Site Site { get; }
         public Section Section { get; }
         public Dictionary<string, object> Features { get; } = new Dictionary<string, object>();
