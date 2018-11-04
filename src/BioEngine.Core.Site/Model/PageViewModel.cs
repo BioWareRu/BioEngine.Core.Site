@@ -16,27 +16,7 @@ namespace BioEngine.Core.Site.Model
         private readonly Entities.Site _site;
         private readonly Section _section;
         private readonly PropertiesProvider _propertiesProvider;
-        private readonly Dictionary<string, object> _features;
 
-        public TFeature GetFeature<TFeature>() where TFeature : class
-        {
-            return GetFeature<TFeature>(PageFilterHelper.GetFeatureKey<TFeature>());
-        }
-
-        public TFeature GetFeature<TFeature>(IEntity entity) where TFeature : class
-        {
-            return GetFeature<TFeature>(PageFilterHelper.GetFeatureKey<TFeature>(entity));
-        }
-
-        private TFeature GetFeature<TFeature>(string key) where TFeature : class
-        {
-            if (_features.ContainsKey(key))
-            {
-                return _features[key] as TFeature;
-            }
-
-            return null;
-        }
 
         public string SiteTitle => _site.Title;
 
@@ -45,8 +25,10 @@ namespace BioEngine.Core.Site.Model
             _site = context.Site;
             _section = context.Section;
             _propertiesProvider = context.PropertiesProvider;
-            _features = context.Features;
+            FeaturesCollection = context.PageFeaturesCollection;
         }
+
+        protected PageFeaturesCollection FeaturesCollection { get; set; }
 
         protected Uri ImageUrl { get; set; }
 
@@ -155,27 +137,19 @@ namespace BioEngine.Core.Site.Model
 
     public class PageViewModelContext
     {
-        public PageViewModelContext(PropertiesProvider propertiesProvider, Entities.Site site, Section section = null)
+        public PageViewModelContext(PropertiesProvider propertiesProvider,
+            PageFeaturesCollection pageFeaturesCollection, Entities.Site site, Section section = null)
         {
             PropertiesProvider = propertiesProvider;
+            PageFeaturesCollection = pageFeaturesCollection;
             Site = site;
             Section = section;
         }
 
         public PropertiesProvider PropertiesProvider { get; }
+        public PageFeaturesCollection PageFeaturesCollection { get; }
         public Entities.Site Site { get; }
         public Section Section { get; }
-        public Dictionary<string, object> Features { get; } = new Dictionary<string, object>();
-
-        public void AddFeature<TFeature>(TFeature feature) where TFeature : class
-        {
-            Features.Add(PageFilterHelper.GetFeatureKey<TFeature>(), feature);
-        }
-
-        public void AddFeature<TFeature>(TFeature feature, IEntity entity) where TFeature : class
-        {
-            Features.Add(PageFilterHelper.GetFeatureKey<TFeature>(entity), feature);
-        }
     }
 
     public class PageMetaModel

@@ -20,7 +20,10 @@ namespace BioEngine.Core.Site
         {
             Repository = context.Repository;
             PageFilters = context.PageFilters;
+            FeaturesCollection = context.FeaturesCollection;
         }
+
+        protected PageFeaturesCollection FeaturesCollection { get; set; }
 
         [PublicAPI] protected IBioRepository<TEntity, TEntityPk> Repository;
         [PublicAPI] protected IEnumerable<IPageFilter> PageFilters;
@@ -50,7 +53,7 @@ namespace BioEngine.Core.Site
 
         protected virtual async Task<PageViewModelContext> GetPageContextAsync(TEntity[] entities)
         {
-            var context = new PageViewModelContext(PropertiesProvider, Site);
+            var context = new PageViewModelContext(PropertiesProvider, FeaturesCollection, Site);
             if (PageFilters != null && PageFilters.Any())
             {
                 foreach (var pageFilter in PageFilters)
@@ -75,7 +78,8 @@ namespace BioEngine.Core.Site
                 return NotFound();
             }
 
-            return View("Show", new EntityViewModel<TEntity, TEntityPk>(await GetPageContextAsync(new[] {entity}), entity));
+            return View("Show",
+                new EntityViewModel<TEntity, TEntityPk>(await GetPageContextAsync(new[] {entity}), entity));
         }
 
         [PublicAPI]
@@ -105,12 +109,17 @@ namespace BioEngine.Core.Site
         where TEntity : class, IEntity<TEntityPk>
     {
         public IEnumerable<IPageFilter> PageFilters { get; }
+        public PageFeaturesCollection FeaturesCollection { get; }
 
-        public SiteControllerContext(ILoggerFactory loggerFactory, IStorage storage, PropertiesProvider propertiesProvider,
-            IBioRepository<TEntity, TEntityPk> repository, IEnumerable<IPageFilter> pageFilters) : base(loggerFactory, storage,
+        public SiteControllerContext(ILoggerFactory loggerFactory, IStorage storage,
+            PropertiesProvider propertiesProvider,
+            IBioRepository<TEntity, TEntityPk> repository, IEnumerable<IPageFilter> pageFilters,
+            PageFeaturesCollection featuresCollection) : base(loggerFactory,
+            storage,
             propertiesProvider, repository)
         {
             PageFilters = pageFilters;
+            FeaturesCollection = featuresCollection;
         }
     }
 }
