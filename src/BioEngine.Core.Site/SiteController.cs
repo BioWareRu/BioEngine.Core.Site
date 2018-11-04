@@ -100,6 +100,10 @@ namespace BioEngine.Core.Site
             {
                 context.SetOrderByString(ControllerContext.HttpContext.Request.Query["order"]);
             }
+            else
+            {
+                context.SetOrderByDescending(e => e.DatePublished);
+            }
 
             return context;
         }
