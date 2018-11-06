@@ -114,14 +114,19 @@ namespace BioEngine.Core.Site.Model
 
     public class ListViewModel<TEntity, TEntityPk> : PageViewModel where TEntity : class, IEntity<TEntityPk>
     {
-        public IEnumerable<TEntity> Items { get; }
+        public TEntity[] Items { get; }
         public int TotalItems { get; }
 
-        public ListViewModel(PageViewModelContext context, IEnumerable<TEntity> items, int totalItems) :
+        public int Page { get; }
+        public int ItemsPerPage { get; }
+
+        public ListViewModel(PageViewModelContext context, TEntity[] items, int totalItems, int page, int itemsPerPage) :
             base(context)
         {
             Items = items;
             TotalItems = totalItems;
+            Page = page;
+            ItemsPerPage = itemsPerPage;
         }
     }
 

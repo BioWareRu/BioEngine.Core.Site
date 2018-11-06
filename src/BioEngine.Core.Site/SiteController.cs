@@ -24,6 +24,8 @@ namespace BioEngine.Core.Site
         }
 
         protected PageFeaturesCollection FeaturesCollection { get; set; }
+        protected int Page { get; private set; } = 1;
+        protected const int ItemsPerPage = 1;
 
         [PublicAPI] protected IBioRepository<TEntity, TEntityPk> Repository;
         [PublicAPI] protected IEnumerable<IPageFilter> PageFilters;
@@ -45,10 +47,10 @@ namespace BioEngine.Core.Site
         [HttpGet]
         public virtual async Task<IActionResult> ListAsync()
         {
-            var result = await Repository.GetAllAsync(GetQueryContext());
+            var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext());
             return View("List",
-                new ListViewModel<TEntity, TEntityPk>(await GetPageContextAsync(result.items.ToArray()), result.items,
-                    result.itemsCount));
+                new ListViewModel<TEntity, TEntityPk>(await GetPageContextAsync(items), items,
+                    itemsCount, Page, ItemsPerPage));
         }
 
         protected virtual async Task<PageViewModelContext> GetPageContextAsync(TEntity[] entities)
@@ -85,15 +87,12 @@ namespace BioEngine.Core.Site
         [PublicAPI]
         protected QueryContext<TEntity, TEntityPk> GetQueryContext()
         {
-            var context = new QueryContext<TEntity, TEntityPk>();
-            if (ControllerContext.HttpContext.Request.Query.ContainsKey("limit"))
+            var context = new QueryContext<TEntity, TEntityPk> {Limit = ItemsPerPage};
+            if (ControllerContext.HttpContext.Request.Query.ContainsKey("page"))
             {
-                context.Limit = int.Parse(ControllerContext.HttpContext.Request.Query["limit"]);
-            }
-
-            if (ControllerContext.HttpContext.Request.Query.ContainsKey("offset"))
-            {
-                context.Offset = int.Parse(ControllerContext.HttpContext.Request.Query["offset"]);
+                Page = int.Parse(ControllerContext.HttpContext.Request.Query["page"]);
+                if (Page < 1) Page = 1;
+                context.Offset = (Page - 1) * ItemsPerPage;
             }
 
             if (ControllerContext.HttpContext.Request.Query.ContainsKey("order"))

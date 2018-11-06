@@ -8,6 +8,7 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -32,6 +33,8 @@ namespace BioEngine.Core.Site
             services.AddSingleton<IStartupFilter, CurrentSiteStartupFilter>();
             services.AddScoped(typeof(SiteControllerContext<,>));
             services.AddScoped<PageFeaturesCollection>();
+            services.AddHttpContextAccessor();
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
         }
     }
 
