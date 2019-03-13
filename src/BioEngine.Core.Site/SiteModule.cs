@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -16,12 +17,12 @@ namespace BioEngine.Core.Site
 {
     public class SiteModule : BioEngineModule
     {
-        public override void ConfigureServices(WebHostBuilderContext builderContext, IServiceCollection services)
+        public override void ConfigureServices(IServiceCollection services, IConfiguration configuration, IHostingEnvironment environment)
         {
-            base.ConfigureServices(builderContext, services);
+            base.ConfigureServices(services, configuration, environment);
             services.Configure<SiteModuleConfig>(o =>
             {
-                if (int.TryParse(builderContext.Configuration["BE_SITE_ID"], out var siteId))
+                if (int.TryParse(configuration["BE_SITE_ID"], out var siteId))
                 {
                     o.SiteId = siteId;
                 }
