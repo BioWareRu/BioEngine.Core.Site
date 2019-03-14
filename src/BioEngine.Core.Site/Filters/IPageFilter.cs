@@ -12,9 +12,9 @@ namespace BioEngine.Core.Site.Filters
 
         Task<bool> ProcessPageAsync(PageViewModelContext viewModel);
 
-        Task<bool> ProcessEntitiesAsync<TEntity, TEntityPk>(PageViewModelContext viewModel,
+        Task<bool> ProcessEntitiesAsync<TEntity>(PageViewModelContext viewModel,
             IEnumerable<TEntity> entities)
-            where TEntity : class, IEntity<TEntityPk>;
+            where TEntity : class, IEntity;
     }
 
     public class PageFeaturesCollection
@@ -56,7 +56,7 @@ namespace BioEngine.Core.Site.Filters
     {
         public static string GetFeatureKey<TFeature>(IEntity entity)
         {
-            return $"{GetFeatureKey<TFeature>()}|{entity.GetType()}|{entity.GetId()}";
+            return $"{GetFeatureKey<TFeature>()}|{entity.GetType()}|{entity.Id}";
         }
 
         public static string GetFeatureKey<TFeature>()

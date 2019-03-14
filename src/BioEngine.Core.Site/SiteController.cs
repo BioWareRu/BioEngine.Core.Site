@@ -14,9 +14,9 @@ using Microsoft.Extensions.Logging;
 
 namespace BioEngine.Core.Site
 {
-    public abstract class SiteController<TEntity, TEntityPk> : BaseController where TEntity : class, IEntity<TEntityPk>
+    public abstract class SiteController<TEntity> : BaseController where TEntity : class, IEntity
     {
-        protected SiteController(SiteControllerContext<TEntity, TEntityPk> context) : base(context)
+        protected SiteController(SiteControllerContext<TEntity> context) : base(context)
         {
             Repository = context.Repository;
             PageFilters = context.PageFilters;
@@ -27,7 +27,7 @@ namespace BioEngine.Core.Site
         protected int Page { get; private set; } = 1;
         protected const int ItemsPerPage = 1;
 
-        [PublicAPI] protected IBioRepository<TEntity, TEntityPk> Repository;
+        [PublicAPI] protected IBioRepository<TEntity> Repository;
         [PublicAPI] protected IEnumerable<IPageFilter> PageFilters;
 
         private Entities.Site Site
@@ -49,7 +49,7 @@ namespace BioEngine.Core.Site
         {
             var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext());
             return View("List",
-                new ListViewModel<TEntity, TEntityPk>(await GetPageContextAsync(items), items,
+                new ListViewModel<TEntity>(await GetPageContextAsync(items), items,
                     itemsCount, Page, ItemsPerPage));
         }
 
@@ -63,7 +63,7 @@ namespace BioEngine.Core.Site
                     await pageFilter.ProcessPageAsync(context);
                     if (pageFilter.CanProcess(typeof(TEntity)))
                     {
-                        await pageFilter.ProcessEntitiesAsync<TEntity, TEntityPk>(context, entities);
+                        await pageFilter.ProcessEntitiesAsync<TEntity>(context, entities);
                     }
                 }
             }
@@ -72,7 +72,7 @@ namespace BioEngine.Core.Site
         }
 
         [HttpGet("{id}-{url}.html")]
-        public virtual async Task<IActionResult> ShowAsync(TEntityPk id, string url)
+        public virtual async Task<IActionResult> ShowAsync(Guid id, string url)
         {
             var entity = await Repository.GetByIdAsync(id);
             if (entity == null)
@@ -81,13 +81,13 @@ namespace BioEngine.Core.Site
             }
 
             return View("Show",
-                new EntityViewModel<TEntity, TEntityPk>(await GetPageContextAsync(new[] {entity}), entity));
+                new EntityViewModel<TEntity>(await GetPageContextAsync(new[] {entity}), entity));
         }
 
         [PublicAPI]
-        protected QueryContext<TEntity, TEntityPk> GetQueryContext()
+        protected QueryContext<TEntity> GetQueryContext()
         {
-            var context = new QueryContext<TEntity, TEntityPk> {Limit = ItemsPerPage};
+            var context = new QueryContext<TEntity> {Limit = ItemsPerPage};
             if (ControllerContext.HttpContext.Request.Query.ContainsKey("page"))
             {
                 Page = int.Parse(ControllerContext.HttpContext.Request.Query["page"]);
@@ -108,15 +108,15 @@ namespace BioEngine.Core.Site
         }
     }
 
-    public class SiteControllerContext<TEntity, TEntityPk> : BaseControllerContext<TEntity, TEntityPk>
-        where TEntity : class, IEntity<TEntityPk>
+    public class SiteControllerContext<TEntity> : BaseControllerContext<TEntity>
+        where TEntity : class, IEntity
     {
         public IEnumerable<IPageFilter> PageFilters { get; }
         public PageFeaturesCollection FeaturesCollection { get; }
 
         public SiteControllerContext(ILoggerFactory loggerFactory, IStorage storage,
             PropertiesProvider propertiesProvider,
-            IBioRepository<TEntity, TEntityPk> repository, IEnumerable<IPageFilter> pageFilters,
+            IBioRepository<TEntity> repository, IEnumerable<IPageFilter> pageFilters,
             PageFeaturesCollection featuresCollection) : base(loggerFactory,
             storage,
             propertiesProvider, repository)

@@ -22,7 +22,7 @@ namespace BioEngine.Core.Site
             base.ConfigureServices(services, configuration, environment);
             services.Configure<SiteModuleConfig>(o =>
             {
-                if (int.TryParse(configuration["BE_SITE_ID"], out var siteId))
+                if (Guid.TryParse(configuration["BE_SITE_ID"], out var siteId))
                 {
                     o.SiteId = siteId;
                 }
@@ -32,7 +32,7 @@ namespace BioEngine.Core.Site
                 }
             });
             services.AddSingleton<IStartupFilter, CurrentSiteStartupFilter>();
-            services.AddScoped(typeof(SiteControllerContext<,>));
+            services.AddScoped(typeof(SiteControllerContext<>));
             services.AddScoped<PageFeaturesCollection>();
             services.AddHttpContextAccessor();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
@@ -93,6 +93,6 @@ namespace BioEngine.Core.Site
 
     public class SiteModuleConfig
     {
-        public int SiteId { get; set; }
+        public Guid SiteId { get; set; }
     }
 }

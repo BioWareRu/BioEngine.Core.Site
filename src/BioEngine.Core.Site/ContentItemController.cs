@@ -3,10 +3,10 @@ using BioEngine.Core.Interfaces;
 
 namespace BioEngine.Core.Site
 {
-    public abstract class ContentItemController<TContentItem, TSectionPk> : SiteController<TContentItem, TSectionPk>
-        where TContentItem : Post, IEntity<TSectionPk>
+    public abstract class ContentItemController<TContentItem> : SiteController<TContentItem>
+        where TContentItem : Post, IEntity
     {
-        protected ContentItemController(SiteControllerContext<TContentItem, TSectionPk> context) : base(context)
+        protected ContentItemController(SiteControllerContext<TContentItem> context) : base(context)
         {
         }
     }

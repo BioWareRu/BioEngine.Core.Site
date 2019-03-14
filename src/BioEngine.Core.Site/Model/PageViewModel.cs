@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BioEngine.Core.Entities;
@@ -112,7 +111,7 @@ namespace BioEngine.Core.Site.Model
         }
     }
 
-    public class ListViewModel<TEntity, TEntityPk> : PageViewModel where TEntity : class, IEntity<TEntityPk>
+    public class ListViewModel<TEntity> : PageViewModel where TEntity : class, IEntity
     {
         public TEntity[] Items { get; }
         public int TotalItems { get; }
@@ -130,7 +129,7 @@ namespace BioEngine.Core.Site.Model
         }
     }
 
-    public class EntityViewModel<TEntity, TEntityPk> : PageViewModel where TEntity : class, IEntity<TEntityPk>
+    public class EntityViewModel<TEntity> : PageViewModel where TEntity : class, IEntity
     {
         public TEntity Entity { get; }
 
