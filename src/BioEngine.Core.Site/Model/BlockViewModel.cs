@@ -2,7 +2,7 @@ using BioEngine.Core.Entities;
 
 namespace BioEngine.Core.Site.Model
 {
-    public struct BlockViewModel<T, TData> where T : PostBlock<TData> where TData : ContentBlockData, new()
+    public struct BlockViewModel<T, TData> where T : ContentBlock<TData> where TData : ContentBlockData, new()
     {
         public BlockViewModel(T block, Post post)
         {
