@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BioEngine.Core.Interfaces;
+using BioEngine.Core.Entities;
 using BioEngine.Core.Site.Model;
 
 namespace BioEngine.Core.Site.Filters
