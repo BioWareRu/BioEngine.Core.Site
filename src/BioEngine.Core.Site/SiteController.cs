@@ -65,7 +65,7 @@ namespace BioEngine.Core.Site
                     await pageFilter.ProcessPageAsync(context);
                     if (pageFilter.CanProcess(typeof(TEntity)))
                     {
-                        await pageFilter.ProcessEntitiesAsync<TEntity>(context, entities);
+                        await pageFilter.ProcessEntitiesAsync(context, entities);
                     }
                 }
             }

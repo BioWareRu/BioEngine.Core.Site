@@ -56,7 +56,7 @@ namespace BioEngine.Core.Site.Filters
     {
         public static string GetFeatureKey<TFeature>(IEntity entity)
         {
-            return $"{GetFeatureKey<TFeature>()}|{entity.GetType()}|{entity.Id}";
+            return $"{GetFeatureKey<TFeature>()}|{entity.GetType()}|{entity.Id.ToString()}";
         }
 
         public static string GetFeatureKey<TFeature>()
