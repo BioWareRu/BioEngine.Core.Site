@@ -4,13 +4,13 @@ namespace BioEngine.Core.Site.Model
 {
     public struct BlockViewModel<T, TData> where T : ContentBlock<TData> where TData : ContentBlockData, new()
     {
-        public BlockViewModel(T block, Post post)
+        public BlockViewModel(T block, IContentEntity contentEntity)
         {
             Block = block;
-            Post = post;
+            ContentEntity = contentEntity;
         }
 
         public T Block { get; set; }
-        public Post Post { get; set; }
+        public IContentEntity ContentEntity { get; set; }
     }
 }

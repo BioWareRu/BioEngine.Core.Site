@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BioEngine.Core.Site
 {
-    public abstract class SiteController<TEntity> : BaseController where TEntity : class, IEntity
+    public abstract class SiteController<TEntity> : BaseController where TEntity : class, IContentEntity
     {
         protected SiteController(SiteControllerContext<TEntity> context) : base(context)
         {
@@ -27,7 +27,7 @@ namespace BioEngine.Core.Site
 
         protected PageFeaturesCollection FeaturesCollection { get; set; }
         protected int Page { get; private set; } = 1;
-        protected const int ItemsPerPage = 1;
+        protected const int ItemsPerPage = 20;
 
         [PublicAPI] protected IBioRepository<TEntity> Repository;
         [PublicAPI] protected IEnumerable<IPageFilter> PageFilters;
@@ -73,10 +73,10 @@ namespace BioEngine.Core.Site
             return context;
         }
 
-        [HttpGet("{id}-{url}.html")]
-        public virtual async Task<IActionResult> ShowAsync(Guid id, string url)
+        [HttpGet("{url}.html")]
+        public virtual async Task<IActionResult> ShowAsync(string url)
         {
-            var entity = await Repository.GetByIdAsync(id);
+            var entity = await Repository.GetAsync(entities => entities.Where(e => e.Url == url));
             if (entity == null)
             {
                 return NotFound();
