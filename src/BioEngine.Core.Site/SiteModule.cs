@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using BioEngine.Core.Modules;
 using BioEngine.Core.Repository;
-using BioEngine.Core.Site.Filters;
+using BioEngine.Core.Site.Features;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

@@ -6,6 +6,7 @@ using BioEngine.Core.DB;
 using BioEngine.Core.Entities;
 using BioEngine.Core.Properties;
 using BioEngine.Core.Repository;
+using BioEngine.Core.Site.Features;
 using BioEngine.Core.Site.Filters;
 using BioEngine.Core.Site.Model;
 using BioEngine.Core.Storage;
