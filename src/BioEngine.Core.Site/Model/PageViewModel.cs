@@ -27,7 +27,7 @@ namespace BioEngine.Core.Site.Model
             FeaturesCollection = context.PageFeaturesCollection;
         }
 
-        protected PageFeaturesCollection FeaturesCollection { get; set; }
+        protected PageFeaturesCollection FeaturesCollection { get; }
 
         protected Uri ImageUrl { get; set; }
 
@@ -121,10 +121,9 @@ namespace BioEngine.Core.Site.Model
             };
 
             var seoPropertiesSet = await PropertiesProvider.GetAsync<SeoPropertiesSet>(Entity);
-            if (seoPropertiesSet != null)
+            if (seoPropertiesSet != null && !string.IsNullOrEmpty(seoPropertiesSet.Description))
             {
                 meta.Description = seoPropertiesSet.Description;
-                meta.Keywords = seoPropertiesSet.Keywords;
             }
             else
             {
@@ -132,7 +131,14 @@ namespace BioEngine.Core.Site.Model
                 {
                     meta.Description = GetDescriptionFromHtml(textBlock.Data.Text);
                 }
+            }
 
+            if (seoPropertiesSet != null && !string.IsNullOrEmpty(seoPropertiesSet.Keywords))
+            {
+                meta.Keywords = seoPropertiesSet.Keywords;
+            }
+            else
+            {
                 if (Entity is ITaggedContentEntity taggedContentEntity)
                 {
                     meta.Keywords = string.Join(", ", taggedContentEntity.Tags.Select(t => t.Name));
