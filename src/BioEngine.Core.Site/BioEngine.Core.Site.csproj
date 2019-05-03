@@ -5,11 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.4"/>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0"/>
-    <PackageReference Include="BioEngine.Core" Version="3.0.*" Condition="!Exists('..\..\..\BioEngine.Core')"/>
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
+    <PackageReference Include="BioEngine.Core" Version="3.0.*" Condition="!Exists('..\..\..\BioEngine.Core')" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\BioEngine.Core\src\BioEngine.Core\BioEngine.Core.csproj" Condition="Exists('..\..\..\BioEngine.Core')"/>
+    <ProjectReference Include="..\..\..\BioEngine.Core\src\BioEngine.Core\BioEngine.Core.csproj" Condition="Exists('..\..\..\BioEngine.Core')" />
   </ItemGroup>
 </Project>
