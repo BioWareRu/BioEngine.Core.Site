@@ -6,7 +6,6 @@ using BioEngine.Core.DB;
 using BioEngine.Core.Entities;
 using BioEngine.Core.Properties;
 using BioEngine.Core.Repository;
-using BioEngine.Core.Site.Features;
 using BioEngine.Core.Site.Filters;
 using BioEngine.Core.Site.Model;
 using BioEngine.Core.Storage;
@@ -23,10 +22,8 @@ namespace BioEngine.Core.Site
         {
             Repository = context.Repository;
             PageFilters = context.PageFilters;
-            FeaturesCollection = context.FeaturesCollection;
         }
 
-        protected PageFeaturesCollection FeaturesCollection { get; set; }
         protected int Page { get; private set; } = 1;
         protected const int ItemsPerPage = 20;
 
@@ -58,7 +55,7 @@ namespace BioEngine.Core.Site
 
         protected virtual async Task<PageViewModelContext> GetPageContextAsync(TEntity[] entities)
         {
-            var context = new PageViewModelContext(PropertiesProvider, FeaturesCollection, Site);
+            var context = new PageViewModelContext(PropertiesProvider, Site);
             if (PageFilters != null && PageFilters.Any())
             {
                 foreach (var pageFilter in PageFilters)
@@ -115,17 +112,14 @@ namespace BioEngine.Core.Site
         where TEntity : class, IEntity
     {
         public IEnumerable<IPageFilter> PageFilters { get; }
-        public PageFeaturesCollection FeaturesCollection { get; }
 
         public SiteControllerContext(ILoggerFactory loggerFactory, IStorage storage,
             PropertiesProvider propertiesProvider,
-            IBioRepository<TEntity> repository, IEnumerable<IPageFilter> pageFilters,
-            PageFeaturesCollection featuresCollection) : base(loggerFactory,
+            IBioRepository<TEntity> repository, IEnumerable<IPageFilter> pageFilters) : base(loggerFactory,
             storage,
             propertiesProvider, repository)
         {
             PageFilters = pageFilters;
-            FeaturesCollection = featuresCollection;
         }
     }
 }

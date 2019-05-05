@@ -5,7 +5,6 @@ using BioEngine.Core.Entities;
 using BioEngine.Core.Entities.Blocks;
 using BioEngine.Core.Properties;
 using BioEngine.Core.Seo;
-using BioEngine.Core.Site.Features;
 using HtmlAgilityPack;
 
 namespace BioEngine.Core.Site.Model
@@ -24,12 +23,7 @@ namespace BioEngine.Core.Site.Model
             Site = context.Site;
             _section = context.Section;
             PropertiesProvider = context.PropertiesProvider;
-            FeaturesCollection = context.PageFeaturesCollection;
         }
-
-        protected PageFeaturesCollection FeaturesCollection { get; }
-
-        protected Uri ImageUrl { get; set; }
 
         private PageMetaModel _meta;
 
@@ -158,16 +152,14 @@ namespace BioEngine.Core.Site.Model
     public class PageViewModelContext
     {
         public PageViewModelContext(PropertiesProvider propertiesProvider,
-            PageFeaturesCollection pageFeaturesCollection, Entities.Site site, Section section = null)
+            Entities.Site site, Section section = null)
         {
             PropertiesProvider = propertiesProvider;
-            PageFeaturesCollection = pageFeaturesCollection;
             Site = site;
             Section = section;
         }
 
         public PropertiesProvider PropertiesProvider { get; }
-        public PageFeaturesCollection PageFeaturesCollection { get; }
         public Entities.Site Site { get; }
         public Section Section { get; }
     }
