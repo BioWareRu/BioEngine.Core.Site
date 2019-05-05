@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -12,20 +10,18 @@ namespace BioEngine.Core.Site.ViewComponents
 {
     public class PagerViewComponent : ViewComponent
     {
-        private readonly HttpContext _httpContext;
         private readonly IUrlHelper _urlHelper;
 
-        public PagerViewComponent(IHttpContextAccessor accessor, IActionContextAccessor actionContextAccessor,
+        public PagerViewComponent(IActionContextAccessor actionContextAccessor,
             IUrlHelperFactory urlHelperFactory)
         {
-            _httpContext = accessor.HttpContext;
             _urlHelper = urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
         }
 
         public async Task<IViewComponentResult> InvokeAsync(int page, int itemsPerPage, int totalItems)
         {
             return await Task.Run(() =>
-                View(new PagerModel(page, totalItems, itemsPerPage, ViewContext, _urlHelper, _httpContext)));
+                View(new PagerModel(page, totalItems, itemsPerPage, ViewContext, _urlHelper)));
         }
     }
 
@@ -33,29 +29,44 @@ namespace BioEngine.Core.Site.ViewComponents
     {
         private readonly ViewContext _viewContext;
         private readonly IUrlHelper _urlHelper;
-        private readonly HttpContext _httpContext;
         public int CurrentPage { get; }
         public int PageCount { get; }
 
         public PagerModel(int currentPage, int totalItems, int itemsPerPage, ViewContext viewContext,
-            IUrlHelper urlHelper, HttpContext httpContext)
+            IUrlHelper urlHelper)
         {
             _viewContext = viewContext;
             _urlHelper = urlHelper;
-            _httpContext = httpContext;
             CurrentPage = currentPage;
-            PageCount = (int) Math.Ceiling((double) totalItems / itemsPerPage);
+            PageCount = (int)Math.Ceiling((double)totalItems / itemsPerPage);
         }
 
         public Uri PageLink(int page)
         {
             var action = _viewContext.RouteData.Values["action"].ToString();
-            var urlTemplate = WebUtility.UrlDecode(_urlHelper.Action(action, new {page = "{0}"}));
-            var request = _httpContext.Request;
-            urlTemplate = request.Query.Keys.Where(key => key != "page").Aggregate(urlTemplate,
-                (current, key) => current + "&" + key + "=" + request.Query[key]);
+            var controller = _viewContext.RouteData.Values["controller"].ToString();
+            var actionParams = _viewContext.RouteData.Values.Where(v => v.Key != "action" && v.Key != "controller")
+                .ToDictionary(v => v.Key, v => v.Value);
+            if (page > 1)
+            {
+                action = action.EndsWith("PageAsync") ? action : action.Replace("Async", "PageAsync");
+                if (actionParams.ContainsKey("page"))
+                {
+                    actionParams["page"] = page;
+                }
+                else
+                {
+                    actionParams.Add("page", page);
+                }
+            }
+            else
+            {
+                actionParams.Remove("page");
+                action = action.Replace("PageAsync", "Async");
+            }
 
-            return new Uri(string.Format(urlTemplate, page.ToString()), UriKind.Relative);
+            var url = _urlHelper.Action(action, controller, actionParams);
+            return new Uri(url, UriKind.Relative);
         }
 
         public Uri FirstLink()

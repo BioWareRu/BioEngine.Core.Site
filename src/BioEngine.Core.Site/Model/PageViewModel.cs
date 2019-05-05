@@ -15,9 +15,6 @@ namespace BioEngine.Core.Site.Model
         private readonly Section _section;
         protected readonly PropertiesProvider PropertiesProvider;
 
-
-        public string SiteTitle => Site.Title;
-
         protected PageViewModel(PageViewModelContext context)
         {
             Site = context.Site;
@@ -87,6 +84,8 @@ namespace BioEngine.Core.Site.Model
         public int Page { get; }
         public int ItemsPerPage { get; }
 
+        public Tag Tag { get; set; }
+
         public ListViewModel(PageViewModelContext context, TEntity[] items, int totalItems, int page,
             int itemsPerPage) :
             base(context)
@@ -95,6 +94,17 @@ namespace BioEngine.Core.Site.Model
             TotalItems = totalItems;
             Page = page;
             ItemsPerPage = itemsPerPage;
+        }
+
+        public override async Task<PageMetaModel> GetMetaAsync()
+        {
+            var meta = await base.GetMetaAsync();
+            if (Tag != null)
+            {
+                meta.Title = $"{Tag.Name} / {Site.Title}";
+            }
+
+            return meta;
         }
     }
 
@@ -111,7 +121,7 @@ namespace BioEngine.Core.Site.Model
         {
             var meta = new PageMetaModel
             {
-                Title = $"{Entity.Title} / {SiteTitle}", CurrentUrl = new Uri($"{Site.Url}{Entity.PublicUrl}")
+                Title = $"{Entity.Title} / {Site.Title}", CurrentUrl = new Uri($"{Site.Url}{Entity.PublicUrl}")
             };
 
             var seoPropertiesSet = await PropertiesProvider.GetAsync<SeoPropertiesSet>(Entity);

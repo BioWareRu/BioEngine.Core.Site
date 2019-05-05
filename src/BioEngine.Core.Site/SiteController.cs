@@ -25,7 +25,7 @@ namespace BioEngine.Core.Site
         }
 
         protected int Page { get; private set; } = 1;
-        protected const int ItemsPerPage = 20;
+        protected virtual int ItemsPerPage { get; } = 20;
 
         [PublicAPI] protected IBioRepository<TEntity> Repository;
         [PublicAPI] protected IEnumerable<IPageFilter> PageFilters;
@@ -48,6 +48,15 @@ namespace BioEngine.Core.Site
         public virtual async Task<IActionResult> ListAsync()
         {
             var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext());
+            return View("List",
+                new ListViewModel<TEntity>(await GetPageContextAsync(items), items,
+                    itemsCount, Page, ItemsPerPage));
+        }
+
+        [HttpGet("page/{page}.html")]
+        public virtual async Task<IActionResult> ListPageAsync(int page)
+        {
+            var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext(page));
             return View("List",
                 new ListViewModel<TEntity>(await GetPageContextAsync(items), items,
                     itemsCount, Page, ItemsPerPage));
@@ -85,10 +94,15 @@ namespace BioEngine.Core.Site
         }
 
         [PublicAPI]
-        protected QueryContext<TEntity> GetQueryContext()
+        protected QueryContext<TEntity> GetQueryContext(int page = 0)
         {
             var context = new QueryContext<TEntity> {Limit = ItemsPerPage};
-            if (ControllerContext.HttpContext.Request.Query.ContainsKey("page"))
+            if (page > 0)
+            {
+                Page = page;
+                context.Offset = (Page - 1) * ItemsPerPage;
+            }
+            else if (ControllerContext.HttpContext.Request.Query.ContainsKey("page"))
             {
                 Page = int.Parse(ControllerContext.HttpContext.Request.Query["page"]);
                 if (Page < 1) Page = 1;
