@@ -12,13 +12,13 @@ namespace BioEngine.Core.Site.Model
     public abstract class PageViewModel
     {
         public readonly Entities.Site Site;
-        private readonly Section _section;
+        protected readonly Section Section;
         protected readonly PropertiesProvider PropertiesProvider;
 
         protected PageViewModel(PageViewModelContext context)
         {
             Site = context.Site;
-            _section = context.Section;
+            Section = context.Section;
             PropertiesProvider = context.PropertiesProvider;
         }
 
@@ -35,9 +35,9 @@ namespace BioEngine.Core.Site.Model
             {
                 _meta = new PageMetaModel {Title = Site.Title, CurrentUrl = new Uri(Site.Url)};
                 SeoPropertiesSet seoPropertiesSet = null;
-                if (_section != null)
+                if (Section != null)
                 {
-                    seoPropertiesSet = await PropertiesProvider.GetAsync<SeoPropertiesSet>(_section);
+                    seoPropertiesSet = await PropertiesProvider.GetAsync<SeoPropertiesSet>(Section);
                 }
 
                 if (seoPropertiesSet == null)
@@ -76,7 +76,7 @@ namespace BioEngine.Core.Site.Model
         }
     }
 
-    public class ListViewModel<TEntity> : PageViewModel where TEntity : class, IEntity
+    public class ListViewModel<TEntity> : PageViewModel where TEntity : class, IEntity, IRoutable
     {
         public TEntity[] Items { get; }
         public int TotalItems { get; }
@@ -101,20 +101,29 @@ namespace BioEngine.Core.Site.Model
             var meta = await base.GetMetaAsync();
             if (Tag != null)
             {
-                meta.Title = $"{Tag.Name} / {Site.Title}";
+                meta.Title = $"{Tag.Title} / {Site.Title}";
             }
 
             return meta;
         }
+
+        public EntityViewModel<TEntity> EntityViewModel(TEntity entity, EntityViewMode mode)
+        {
+            return new EntityViewModel<TEntity>(new PageViewModelContext(PropertiesProvider, Site, Section), entity,
+                mode);
+        }
     }
 
-    public class EntityViewModel<TEntity> : PageViewModel where TEntity : class, IContentEntity
+    public class EntityViewModel<TEntity> : PageViewModel where TEntity : class, IEntity, IRoutable
     {
         public TEntity Entity { get; }
+        public EntityViewMode Mode { get; }
 
-        public EntityViewModel(PageViewModelContext context, TEntity entity) : base(context)
+        public EntityViewModel(PageViewModelContext context, TEntity entity, EntityViewMode mode = EntityViewMode.List)
+            : base(context)
         {
             Entity = entity;
+            Mode = mode;
         }
 
         public override async Task<PageMetaModel> GetMetaAsync()
@@ -131,9 +140,12 @@ namespace BioEngine.Core.Site.Model
             }
             else
             {
-                if (Entity.Blocks.FirstOrDefault(b => b is TextBlock) is TextBlock textBlock)
+                if (Entity is IContentEntity contentEntity)
                 {
-                    meta.Description = GetDescriptionFromHtml(textBlock.Data.Text);
+                    if (contentEntity.Blocks.FirstOrDefault(b => b is TextBlock) is TextBlock textBlock)
+                    {
+                        meta.Description = GetDescriptionFromHtml(textBlock.Data.Text);
+                    }
                 }
             }
 
@@ -145,18 +157,39 @@ namespace BioEngine.Core.Site.Model
             {
                 if (Entity is ITaggedContentEntity taggedContentEntity)
                 {
-                    meta.Keywords = string.Join(", ", taggedContentEntity.Tags.Select(t => t.Name));
+                    meta.Keywords = string.Join(", ", taggedContentEntity.Tags.Select(t => t.Title));
                 }
             }
 
-            if (Entity.Blocks.FirstOrDefault(b => b is GalleryBlock) is GalleryBlock galleryBlock
-                && galleryBlock.Data.Pictures.Length > 0)
+            if (Entity is IContentEntity contEntity)
             {
-                meta.ImageUrl = galleryBlock.Data.Pictures[0].PublicUri;
+                if (contEntity.Blocks.FirstOrDefault(b => b is GalleryBlock) is GalleryBlock galleryBlock
+                    && galleryBlock.Data.Pictures.Length > 0)
+                {
+                    meta.ImageUrl = galleryBlock.Data.Pictures[0].PublicUri;
+                }
             }
 
             return meta;
         }
+        
+        public EntityViewModel<IContentEntity> ContentEntityViewModel()
+        {
+            if (Entity is IContentEntity contentEntity)
+            {
+                return new EntityViewModel<IContentEntity>(new PageViewModelContext(PropertiesProvider, Site, Section),
+                    contentEntity,
+                    Mode);
+            }
+            
+            throw new ArgumentException($"Entity {Entity} is not IContentEntity");
+        }
+    }
+
+    public enum EntityViewMode
+    {
+        List,
+        Entity
     }
 
     public class PageViewModelContext

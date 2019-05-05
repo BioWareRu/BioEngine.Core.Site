@@ -35,14 +35,14 @@ namespace BioEngine.Core.Site.Controllers
             return ShowListByTagAsync(tagName, 0);
         }
 
-        protected virtual async Task<IActionResult> ShowListByTagAsync(string tagName, int page)
+        protected virtual async Task<IActionResult> ShowListByTagAsync(string tagTitle, int page)
         {
-            if (string.IsNullOrEmpty(tagName))
+            if (string.IsNullOrEmpty(tagTitle))
             {
                 return BadRequest();
             }
 
-            var tag = await TagsRepository.GetAsync(q => q.Where(t => t.Name == tagName));
+            var tag = await TagsRepository.GetAsync(q => q.Where(t => t.Title == tagTitle));
             if (tag == null)
             {
                 return BadRequest();

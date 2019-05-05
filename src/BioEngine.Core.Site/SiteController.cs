@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BioEngine.Core.Site
 {
-    public abstract class SiteController<TEntity> : BaseController where TEntity : class, IContentEntity
+    public abstract class SiteController<TEntity> : BaseController where TEntity : class, IEntity, IRoutable
     {
         protected SiteController(SiteControllerContext<TEntity> context) : base(context)
         {
@@ -83,14 +83,14 @@ namespace BioEngine.Core.Site
         [HttpGet("{url}.html")]
         public virtual async Task<IActionResult> ShowAsync(string url)
         {
-            var entity = await Repository.GetAsync(entities => entities.Where(e => e.Url == url));
+            var entity = await Repository.GetAsync(entities => entities.Where(e => e.Url == url && e.IsPublished));
             if (entity == null)
             {
                 return NotFound();
             }
 
             return View("Show",
-                new EntityViewModel<TEntity>(await GetPageContextAsync(new[] {entity}), entity));
+                new EntityViewModel<TEntity>(await GetPageContextAsync(new[] {entity}), entity, EntityViewMode.Entity));
         }
 
         [PublicAPI]
