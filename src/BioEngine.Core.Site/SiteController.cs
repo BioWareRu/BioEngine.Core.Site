@@ -17,7 +17,7 @@ namespace BioEngine.Core.Site
         {
         }
 
-        private Entities.Site Site
+        protected Entities.Site Site
         {
             get
             {
@@ -98,6 +98,8 @@ namespace BioEngine.Core.Site
                 if (Page < 1) Page = 1;
                 context.Offset = (Page - 1) * ItemsPerPage;
             }
+            
+            context.SetSite(Site);
 
             if (ControllerContext.HttpContext.Request.Query.ContainsKey("order"))
             {

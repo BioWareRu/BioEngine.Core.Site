@@ -1,4 +1,6 @@
 using System.Globalization;
+using BioEngine.Core.Site.Rss;
+using cloudscribe.Syndication.Models.Rss;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -21,6 +23,7 @@ namespace BioEngine.Core.Site
         public virtual void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Latest);
+            services.AddScoped<IChannelProvider, RssProvider>();
         }
 
         public virtual void Configure(IApplicationBuilder app, IHostingEnvironment env)

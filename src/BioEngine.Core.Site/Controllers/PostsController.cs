@@ -1,9 +1,12 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BioEngine.Core.Entities;
 using BioEngine.Core.Repository;
 using BioEngine.Core.Site.Model;
 using BioEngine.Core.Web;
+using cloudscribe.Syndication.Models.Rss;
+using cloudscribe.Syndication.Web;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BioEngine.Core.Site.Controllers
@@ -56,6 +59,41 @@ namespace BioEngine.Core.Site.Controllers
             return View("List",
                 new ListViewModel<Post>(GetPageContext(), items,
                     itemsCount, Page, ItemsPerPage) {Tag = tag});
+        }
+        
+        [HttpGet("/rss.xml")]
+        [HttpGet("/rss")]
+        [HttpGet("/news/rss.xml")]
+        [HttpGet("/news/rss")]
+        public async Task<IActionResult> RssAsync([FromServices] IEnumerable<IChannelProvider> channelProviders = null)
+        {
+            channelProviders = channelProviders ?? new List<IChannelProvider>();
+            var list = channelProviders as List<IChannelProvider>;
+            if (list?.Count == 0)
+                list.Add(new NullChannelProvider());
+
+            var channelResolver = new DefaultChannelProviderResolver();
+            var xmlFormatter = new DefaultXmlFormatter();
+
+            var currentChannelProvider = channelResolver.GetCurrentChannelProvider(channelProviders);
+
+            if (currentChannelProvider == null)
+            {
+                Response.StatusCode = 404;
+                return new EmptyResult();
+            }
+
+            var currentChannel = await currentChannelProvider.GetChannel();
+
+            if (currentChannel == null)
+            {
+                Response.StatusCode = 404;
+                return new EmptyResult();
+            }
+
+            var xml = xmlFormatter.BuildXml(currentChannel);
+
+            return new XmlResult(xml);
         }
     }
 }
