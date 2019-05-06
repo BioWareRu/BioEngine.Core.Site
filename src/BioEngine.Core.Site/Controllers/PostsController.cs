@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using BioEngine.Core.Entities;
 using BioEngine.Core.Repository;
 using BioEngine.Core.Site.Model;
+using BioEngine.Core.Web;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BioEngine.Core.Site.Controllers
@@ -12,7 +13,7 @@ namespace BioEngine.Core.Site.Controllers
     {
         protected readonly TagsRepository TagsRepository;
 
-        public PostsController(SiteControllerContext<Post> context, TagsRepository tagsRepository) : base(context)
+        public PostsController(BaseControllerContext<Post> context, TagsRepository tagsRepository) : base(context)
         {
             TagsRepository = tagsRepository;
         }
@@ -53,7 +54,7 @@ namespace BioEngine.Core.Site.Controllers
 
             var (items, itemsCount) = await Repository.GetAllAsync(context);
             return View("List",
-                new ListViewModel<Post>(await GetPageContextAsync(items), items,
+                new ListViewModel<Post>(GetPageContext(), items,
                     itemsCount, Page, ItemsPerPage) {Tag = tag});
         }
     }

@@ -172,7 +172,7 @@ namespace BioEngine.Core.Site.Model
 
             return meta;
         }
-        
+
         public EntityViewModel<IContentEntity> ContentEntityViewModel()
         {
             if (Entity is IContentEntity contentEntity)
@@ -181,7 +181,7 @@ namespace BioEngine.Core.Site.Model
                     contentEntity,
                     Mode);
             }
-            
+
             throw new ArgumentException($"Entity {Entity} is not IContentEntity");
         }
     }
@@ -214,5 +214,15 @@ namespace BioEngine.Core.Site.Model
         public string Keywords { get; set; }
         public Uri ImageUrl { get; set; }
         public Uri CurrentUrl { get; set; }
+    }
+
+    public class ErrorsViewModel : PageViewModel
+    {
+        public int ErrorCode { get; }
+
+        public ErrorsViewModel(PageViewModelContext context, int errorCode) : base(context)
+        {
+            ErrorCode = errorCode;
+        }
     }
 }

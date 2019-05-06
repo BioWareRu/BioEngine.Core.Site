@@ -1,34 +1,21 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BioEngine.Core.DB;
 using BioEngine.Core.Entities;
-using BioEngine.Core.Properties;
 using BioEngine.Core.Repository;
-using BioEngine.Core.Site.Filters;
 using BioEngine.Core.Site.Model;
-using BioEngine.Core.Storage;
 using BioEngine.Core.Web;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace BioEngine.Core.Site
 {
-    public abstract class SiteController<TEntity> : BaseController where TEntity : class, IEntity, IRoutable
+    public abstract class BaseSiteController : BaseController
     {
-        protected SiteController(SiteControllerContext<TEntity> context) : base(context)
+        protected BaseSiteController(BaseControllerContext context) : base(context)
         {
-            Repository = context.Repository;
-            PageFilters = context.PageFilters;
         }
-
-        protected int Page { get; private set; } = 1;
-        protected virtual int ItemsPerPage { get; } = 20;
-
-        [PublicAPI] protected IBioRepository<TEntity> Repository;
-        [PublicAPI] protected IEnumerable<IPageFilter> PageFilters;
 
         private Entities.Site Site
         {
@@ -44,12 +31,33 @@ namespace BioEngine.Core.Site
             }
         }
 
+        protected virtual PageViewModelContext GetPageContext()
+        {
+            var context = new PageViewModelContext(PropertiesProvider, Site);
+
+            return context;
+        }
+    }
+
+    public abstract class SiteController<TEntity> : BaseSiteController where TEntity : class, IEntity, IRoutable
+    {
+        protected SiteController(BaseControllerContext<TEntity> context) : base(context)
+        {
+            Repository = context.Repository;
+        }
+
+        protected int Page { get; private set; } = 1;
+        protected virtual int ItemsPerPage { get; } = 20;
+
+        [PublicAPI] protected IBioRepository<TEntity> Repository;
+
+
         [HttpGet]
         public virtual async Task<IActionResult> ListAsync()
         {
             var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext());
             return View("List",
-                new ListViewModel<TEntity>(await GetPageContextAsync(items), items,
+                new ListViewModel<TEntity>(GetPageContext(), items,
                     itemsCount, Page, ItemsPerPage));
         }
 
@@ -58,26 +66,8 @@ namespace BioEngine.Core.Site
         {
             var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext(page));
             return View("List",
-                new ListViewModel<TEntity>(await GetPageContextAsync(items), items,
+                new ListViewModel<TEntity>(GetPageContext(), items,
                     itemsCount, Page, ItemsPerPage));
-        }
-
-        protected virtual async Task<PageViewModelContext> GetPageContextAsync(TEntity[] entities)
-        {
-            var context = new PageViewModelContext(PropertiesProvider, Site);
-            if (PageFilters != null && PageFilters.Any())
-            {
-                foreach (var pageFilter in PageFilters)
-                {
-                    await pageFilter.ProcessPageAsync(context);
-                    if (pageFilter.CanProcess(typeof(TEntity)))
-                    {
-                        await pageFilter.ProcessEntitiesAsync(context, entities);
-                    }
-                }
-            }
-
-            return context;
         }
 
         [HttpGet("{url}.html")]
@@ -90,7 +80,7 @@ namespace BioEngine.Core.Site
             }
 
             return View("Show",
-                new EntityViewModel<TEntity>(await GetPageContextAsync(new[] {entity}), entity, EntityViewMode.Entity));
+                new EntityViewModel<TEntity>(GetPageContext(), entity, EntityViewMode.Entity));
         }
 
         [PublicAPI]
@@ -119,21 +109,6 @@ namespace BioEngine.Core.Site
             }
 
             return context;
-        }
-    }
-
-    public class SiteControllerContext<TEntity> : BaseControllerContext<TEntity>
-        where TEntity : class, IEntity
-    {
-        public IEnumerable<IPageFilter> PageFilters { get; }
-
-        public SiteControllerContext(ILoggerFactory loggerFactory, IStorage storage,
-            PropertiesProvider propertiesProvider,
-            IBioRepository<TEntity> repository, IEnumerable<IPageFilter> pageFilters) : base(loggerFactory,
-            storage,
-            propertiesProvider, repository)
-        {
-            PageFilters = pageFilters;
         }
     }
 }

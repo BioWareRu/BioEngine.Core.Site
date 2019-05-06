@@ -31,7 +31,6 @@ namespace BioEngine.Core.Site
                 }
             });
             services.AddSingleton<IStartupFilter, CurrentSiteStartupFilter>();
-            services.AddScoped(typeof(SiteControllerContext<>));
             services.AddHttpContextAccessor();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
         }

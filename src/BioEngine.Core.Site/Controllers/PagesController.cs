@@ -1,4 +1,5 @@
 using BioEngine.Core.Entities;
+using BioEngine.Core.Web;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BioEngine.Core.Site.Controllers
@@ -6,7 +7,7 @@ namespace BioEngine.Core.Site.Controllers
     [Route("/pages")]
     public class PagesController : SiteController<Page>
     {
-        public PagesController(SiteControllerContext<Page> context) : base(context)
+        public PagesController(BaseControllerContext<Page> context) : base(context)
         {
         }
     }
