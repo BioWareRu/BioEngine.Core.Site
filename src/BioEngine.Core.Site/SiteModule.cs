@@ -10,13 +10,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace BioEngine.Core.Site
 {
     public class SiteModule : BioEngineModule
     {
-        public override void ConfigureServices(IServiceCollection services, IConfiguration configuration, IHostingEnvironment environment)
+        public override void ConfigureServices(IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
         {
             base.ConfigureServices(services, configuration, environment);
             services.Configure<SiteModuleConfig>(o =>

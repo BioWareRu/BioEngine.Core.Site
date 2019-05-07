@@ -1,13 +1,11 @@
 using System.Globalization;
-using BioEngine.Core.Site.Rss;
-using cloudscribe.Syndication.Models.Rss;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace BioEngine.Core.Site
 {
@@ -22,11 +20,12 @@ namespace BioEngine.Core.Site
 
         public virtual void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Latest);
-            services.AddScoped<IChannelProvider, RssProvider>();
+            services.AddControllersWithViews()
+                .AddNewtonsoftJson()
+                .SetCompatibilityVersion(CompatibilityVersion.Latest);
         }
 
-        public virtual void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public virtual void Configure(IApplicationBuilder app, IHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -42,14 +41,19 @@ namespace BioEngine.Core.Site
                 SupportedUICultures = supportedCultures
             });
 
+            app.UseStaticFiles();
+            
+            app.UseRouting();
+            
             ConfigureApp(app, env);
 
-            app.UseStaticFiles();
-
-            app.UseMvc();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
 
-        protected virtual void ConfigureApp(IApplicationBuilder app, IHostingEnvironment env)
+        protected virtual void ConfigureApp(IApplicationBuilder app, IHostEnvironment env)
         {
             if (env.IsProduction())
             {

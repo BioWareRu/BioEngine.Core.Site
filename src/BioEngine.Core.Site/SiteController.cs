@@ -56,17 +56,15 @@ namespace BioEngine.Core.Site
         public virtual async Task<IActionResult> ListAsync()
         {
             var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext());
-            return View("List",
-                new ListViewModel<TEntity>(GetPageContext(), items,
-                    itemsCount, Page, ItemsPerPage));
+            return View(new ListViewModel<TEntity>(GetPageContext(), items,
+                itemsCount, Page, ItemsPerPage));
         }
 
         [HttpGet("page/{page}.html")]
         public virtual async Task<IActionResult> ListPageAsync(int page)
         {
             var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext(page));
-            return View("List",
-                new ListViewModel<TEntity>(GetPageContext(), items,
+            return View(new ListViewModel<TEntity>(GetPageContext(), items,
                     itemsCount, Page, ItemsPerPage));
         }
 
@@ -79,8 +77,7 @@ namespace BioEngine.Core.Site
                 return NotFound();
             }
 
-            return View("Show",
-                new EntityViewModel<TEntity>(GetPageContext(), entity, EntityViewMode.Entity));
+            return View(new EntityViewModel<TEntity>(GetPageContext(), entity, EntityViewMode.Entity));
         }
 
         [PublicAPI]
@@ -98,7 +95,7 @@ namespace BioEngine.Core.Site
                 if (Page < 1) Page = 1;
                 context.Offset = (Page - 1) * ItemsPerPage;
             }
-            
+
             context.SetSite(Site);
 
             if (ControllerContext.HttpContext.Request.Query.ContainsKey("order"))

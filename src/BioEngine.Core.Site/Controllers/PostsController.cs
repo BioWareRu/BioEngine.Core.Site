@@ -1,13 +1,14 @@
-using System.Collections.Generic;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
+using BioEngine.Core.Comments;
 using BioEngine.Core.Entities;
+using BioEngine.Core.Entities.Blocks;
 using BioEngine.Core.Repository;
 using BioEngine.Core.Site.Model;
 using BioEngine.Core.Web;
-using cloudscribe.Syndication.Models.Rss;
-using cloudscribe.Syndication.Web;
 using Microsoft.AspNetCore.Mvc;
+using WilderMinds.RssSyndication;
 
 namespace BioEngine.Core.Site.Controllers
 {
@@ -15,10 +16,13 @@ namespace BioEngine.Core.Site.Controllers
     public class PostsController : SiteController<Post>
     {
         protected readonly TagsRepository TagsRepository;
+        private readonly ICommentsProvider _commentsProvider;
 
-        public PostsController(BaseControllerContext<Post> context, TagsRepository tagsRepository) : base(context)
+        public PostsController(BaseControllerContext<Post> context, TagsRepository tagsRepository,
+            ICommentsProvider commentsProvider) : base(context)
         {
             TagsRepository = tagsRepository;
+            _commentsProvider = commentsProvider;
         }
 
         [HttpGet("posts/{url}.html")]
@@ -56,41 +60,78 @@ namespace BioEngine.Core.Site.Controllers
             context.SetTag(tag);
 
             var (items, itemsCount) = await Repository.GetAllAsync(context);
-            return View("List",
-                new ListViewModel<Post>(GetPageContext(), items,
-                    itemsCount, Page, ItemsPerPage) {Tag = tag});
+            return View(new ListViewModel<Post>(GetPageContext(), items,
+                itemsCount, Page, ItemsPerPage) {Tag = tag});
         }
-        
+
         [HttpGet("/rss.xml")]
-        public async Task<IActionResult> RssAsync([FromServices] IEnumerable<IChannelProvider> channelProviders = null)
+        public async Task<IActionResult> RssAsync()
         {
-            channelProviders = channelProviders ?? new List<IChannelProvider>();
-            var list = channelProviders as List<IChannelProvider>;
-            if (list?.Count == 0)
-                list.Add(new NullChannelProvider());
-
-            var channelResolver = new DefaultChannelProviderResolver();
-            var xmlFormatter = new DefaultXmlFormatter();
-
-            var currentChannelProvider = channelResolver.GetCurrentChannelProvider(channelProviders);
-
-            if (currentChannelProvider == null)
+            var feed = new Feed
             {
-                Response.StatusCode = 404;
-                return new EmptyResult();
+                Title = Site.Title,
+                Description = "Последние публикации",
+                Link = new Uri(Site.Url),
+                Copyright = "(c) www.BioWare.ru"
+            };
+
+            var context = GetQueryContext();
+
+            var posts = await Repository.GetAllAsync(context);
+            var mostRecentPubDate = DateTime.MinValue;
+            foreach (var post in posts.items)
+            {
+                var postDate = post.DateAdded.DateTime;
+                if (postDate > mostRecentPubDate) mostRecentPubDate = postDate;
+                var postUrl = new Uri($"{Site.Url}{post.PublicUrl}");
+
+
+                var item = new Item
+                {
+                    Title = post.Title,
+                    Body = GetDescription(post),
+                    Link = postUrl,
+                    PublishDate = postDate,
+                    Author = new Author {Name = post.Author.Name},
+                    Comments = await _commentsProvider.GetCommentsUrlAsync(post)
+                };
+
+                foreach (var section in post.Sections)
+                {
+                    item.Categories.Add(section.Title);
+                }
+
+                feed.Items.Add(item);
             }
 
-            var currentChannel = await currentChannelProvider.GetChannel();
 
-            if (currentChannel == null)
+            var rss = feed.Serialize();
+
+            return Content(rss, "text/xml; charset=utf-8");
+        }
+
+        private static string GetDescription(Post post)
+        {
+            var description = "";
+
+            foreach (var block in post.Blocks)
             {
-                Response.StatusCode = 404;
-                return new EmptyResult();
+                switch (block)
+                {
+                    case CutBlock _:
+                        return description;
+                    case TextBlock textBlock:
+                        description += textBlock.Data.Text;
+                        break;
+                    case PictureBlock pictureBlock:
+                        description += $"<p style=\"text-align:center;\">{pictureBlock.Data.Picture.PublicUri}</p>";
+                        break;
+                    default:
+                        continue;
+                }
             }
 
-            var xml = xmlFormatter.BuildXml(currentChannel);
-
-            return new XmlResult(xml);
+            return description;
         }
     }
 }
