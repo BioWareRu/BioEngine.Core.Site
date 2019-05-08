@@ -77,12 +77,12 @@ namespace BioEngine.Core.Site.Controllers
 
         protected SearchBlock CreateSearchBlock<T>(string title, Uri url, long totalCount,
             IEnumerable<T> items,
-            Func<T, string> getTitle, Func<T, Uri> getUrl, Func<T, string> getDesc)
+            Func<T, string> getTitle, Func<T, Uri> getUrl, Func<T, string> getDesc, Func<T, DateTimeOffset> getDate)
         {
             var block = new SearchBlock(title, url, totalCount);
             foreach (var item in items)
             {
-                block.AddItem(getTitle(item), getUrl(item), getDesc(item));
+                block.AddItem(getTitle(item), getUrl(item), getDesc(item), getDate(item));
             }
 
             return block;
@@ -131,9 +131,9 @@ namespace BioEngine.Core.Site.Controllers
             TotalCount = totalCount;
         }
 
-        public void AddItem(string title, Uri url, string text)
+        public void AddItem(string title, Uri url, string text, DateTimeOffset date)
         {
-            Items.Add(new SearchBlockItem(title, url, text));
+            Items.Add(new SearchBlockItem(title, url, text, date));
             Count++;
         }
     }
@@ -143,11 +143,13 @@ namespace BioEngine.Core.Site.Controllers
         public string Title { get; }
         public Uri Url { get; }
         public string Text { get; }
+        public DateTimeOffset Date { get; }
 
-        public SearchBlockItem(string title, Uri url, string text)
+        public SearchBlockItem(string title, Uri url, string text, DateTimeOffset date)
         {
             Title = title;
             Text = text;
+            Date = date;
             Url = url;
         }
     }
