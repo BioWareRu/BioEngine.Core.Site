@@ -42,9 +42,9 @@ namespace BioEngine.Core.Site
             });
 
             app.UseStaticFiles();
-            
+
             app.UseRouting();
-            
+
             ConfigureApp(app, env);
 
             app.UseEndpoints(endpoints =>
