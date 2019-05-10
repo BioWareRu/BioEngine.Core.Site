@@ -49,7 +49,7 @@ namespace BioEngine.Core.Site.ViewComponents
                 .ToDictionary(v => v.Key, v => v.Value);
             if (page > 1)
             {
-                action = action.EndsWith("PageAsync") ? action : action.Replace("Async", "PageAsync");
+                action = action.EndsWith("Page") ? action : action + "Page";
                 if (actionParams.ContainsKey("page"))
                 {
                     actionParams["page"] = page;
@@ -62,7 +62,7 @@ namespace BioEngine.Core.Site.ViewComponents
             else
             {
                 actionParams.Remove("page");
-                action = action.Replace("PageAsync", "Async");
+                action = action.Replace("Page", "");
             }
 
             var url = _urlHelper.Action(action, controller, actionParams);

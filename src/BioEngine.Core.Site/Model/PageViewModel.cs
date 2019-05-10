@@ -12,7 +12,7 @@ namespace BioEngine.Core.Site.Model
     public abstract class PageViewModel
     {
         public readonly Entities.Site Site;
-        protected readonly Section Section;
+        public readonly Section Section;
         protected readonly PropertiesProvider PropertiesProvider;
 
         protected PageViewModel(PageViewModelContext context)

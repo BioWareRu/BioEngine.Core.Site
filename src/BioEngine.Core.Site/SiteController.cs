@@ -65,7 +65,7 @@ namespace BioEngine.Core.Site
         {
             var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext(page));
             return View(new ListViewModel<TEntity>(GetPageContext(), items,
-                    itemsCount, Page, ItemsPerPage));
+                itemsCount, Page, ItemsPerPage));
         }
 
         [HttpGet("{url}.html")]
@@ -80,10 +80,8 @@ namespace BioEngine.Core.Site
             return View(new EntityViewModel<TEntity>(GetPageContext(), entity, EntityViewMode.Entity));
         }
 
-        [PublicAPI]
-        protected QueryContext<TEntity> GetQueryContext(int page = 0)
+        protected void BuildQueryContext(QueryContext context, int page = 0)
         {
-            var context = new QueryContext<TEntity> {Limit = ItemsPerPage};
             if (page > 0)
             {
                 Page = page;
@@ -97,6 +95,14 @@ namespace BioEngine.Core.Site
             }
 
             context.SetSite(Site);
+        }
+
+        [PublicAPI]
+        protected QueryContext<TEntity> GetQueryContext(int page = 0)
+        {
+            var context = new QueryContext<TEntity> {Limit = ItemsPerPage};
+
+            BuildQueryContext(context, page);
 
             if (ControllerContext.HttpContext.Request.Query.ContainsKey("order"))
             {
