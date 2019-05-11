@@ -90,7 +90,8 @@ namespace BioEngine.Core.Site.Controllers
 
             var posts = await Repository.GetAllAsync(context);
             var mostRecentPubDate = DateTime.MinValue;
-            var commentsData = await _commentsProvider.GetCommentsDataAsync(posts.items);
+            var commentsData =
+                await _commentsProvider.GetCommentsDataAsync(posts.items.Select(p => p as IContentEntity).ToArray());
             foreach (var post in posts.items)
             {
                 var postDate = post.DateAdded.DateTime;
