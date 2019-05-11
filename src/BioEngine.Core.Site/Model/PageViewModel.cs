@@ -107,10 +107,9 @@ namespace BioEngine.Core.Site.Model
             return meta;
         }
 
-        public EntityViewModel<TEntity> EntityViewModel(TEntity entity, EntityViewMode mode)
+        public PageViewModelContext GetContext()
         {
-            return new EntityViewModel<TEntity>(new PageViewModelContext(PropertiesProvider, Site, Section), entity,
-                mode);
+            return new PageViewModelContext(PropertiesProvider, Site, Section);
         }
     }
 
@@ -183,6 +182,20 @@ namespace BioEngine.Core.Site.Model
             }
 
             throw new ArgumentException($"Entity {Entity} is not IContentEntity");
+        }
+    }
+
+    public class PostViewModel : EntityViewModel<Post>
+    {
+        public int CommentsCount { get; }
+        public Uri CommentsUri { get; }
+
+        public PostViewModel(PageViewModelContext context, Post entity, int commentsCount, Uri commentsUri,
+            EntityViewMode mode = EntityViewMode.List) :
+            base(context, entity, mode)
+        {
+            CommentsCount = commentsCount;
+            CommentsUri = commentsUri;
         }
     }
 
