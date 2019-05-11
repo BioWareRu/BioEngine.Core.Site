@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using BioEngine.Core.Comments;
@@ -26,9 +27,19 @@ namespace BioEngine.Core.Site.Controllers
         }
 
         [HttpGet("posts/{url}.html")]
-        public override Task<IActionResult> ShowAsync(string url)
+        [SuppressMessage("ReSharper", "Mvc.ViewNotResolved")]
+        public override async Task<IActionResult> ShowAsync(string url)
         {
-            return base.ShowAsync(url);
+            var post = await Repository.GetAsync(entities => entities.Where(e => e.Url == url && e.IsPublished));
+            if (post == null)
+            {
+                return NotFound();
+            }
+
+            var commentsData = await _commentsProvider.GetCommentsDataAsync(new IContentEntity[] {post});
+
+            return View(new PostViewModel(GetPageContext(), post, commentsData[post.Id].count,
+                commentsData[post.Id].uri));
         }
 
         [HttpGet("posts/tag/{tagName}/page/{page}.html")]
@@ -79,6 +90,7 @@ namespace BioEngine.Core.Site.Controllers
 
             var posts = await Repository.GetAllAsync(context);
             var mostRecentPubDate = DateTime.MinValue;
+            var commentsData = await _commentsProvider.GetCommentsDataAsync(posts.items);
             foreach (var post in posts.items)
             {
                 var postDate = post.DateAdded.DateTime;
@@ -93,8 +105,12 @@ namespace BioEngine.Core.Site.Controllers
                     Link = postUrl,
                     PublishDate = postDate,
                     Author = new Author {Name = post.Author.Name},
-                    Comments = await _commentsProvider.GetCommentsUrlAsync(post)
                 };
+
+                if (commentsData.ContainsKey(post.Id))
+                {
+                    item.Comments = commentsData[post.Id].uri;
+                }
 
                 foreach (var section in post.Sections)
                 {
