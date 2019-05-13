@@ -11,26 +11,24 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 
 namespace BioEngine.Core.Site
 {
-    public class SiteModule : WebModule
+    public class SiteModule : WebModule<SiteModuleConfig>
     {
-        public override void ConfigureServices(IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+        protected override void CheckConfig()
+        {
+            if (Config.SiteId == null || Config.SiteId == Guid.Empty)
+            {
+                throw new ArgumentException("Site id is not configured!");
+            }
+        }
+
+        public override void ConfigureServices(IServiceCollection services, IConfiguration configuration,
+            IHostEnvironment environment)
         {
             base.ConfigureServices(services, configuration, environment);
-            services.Configure<SiteModuleConfig>(o =>
-            {
-                if (Guid.TryParse(configuration["BE_SITE_ID"], out var siteId))
-                {
-                    o.SiteId = siteId;
-                }
-                else
-                {
-                    throw new ArgumentException("Site id is not configured!");
-                }
-            });
+            services.AddSingleton(Config);
             services.AddSingleton<IStartupFilter, CurrentSiteStartupFilter>();
             services.AddHttpContextAccessor();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
@@ -55,10 +53,10 @@ namespace BioEngine.Core.Site
         private readonly RequestDelegate _next;
         private readonly SiteModuleConfig _options;
 
-        public CurrentSiteMiddleware(RequestDelegate next, IOptions<SiteModuleConfig> options)
+        public CurrentSiteMiddleware(RequestDelegate next, SiteModuleConfig options)
         {
             _next = next;
-            _options = options.Value;
+            _options = options;
         }
 
         [UsedImplicitly]
@@ -89,8 +87,8 @@ namespace BioEngine.Core.Site
         public Entities.Site Site { get; }
     }
 
-    public class SiteModuleConfig
+    public class SiteModuleConfig : WebModuleConfig
     {
-        public Guid SiteId { get; set; }
+        public Guid SiteId { get; set; } = Guid.Empty;
     }
 }
