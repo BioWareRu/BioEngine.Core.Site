@@ -16,14 +16,6 @@ namespace BioEngine.Core.Site
 {
     public class SiteModule : WebModule<SiteModuleConfig>
     {
-        protected override void CheckConfig()
-        {
-            if (Config.SiteId == null || Config.SiteId == Guid.Empty)
-            {
-                throw new ArgumentException("Site id is not configured!");
-            }
-        }
-
         public override void ConfigureServices(IServiceCollection services, IConfiguration configuration,
             IHostEnvironment environment)
         {
@@ -89,6 +81,11 @@ namespace BioEngine.Core.Site
 
     public class SiteModuleConfig : WebModuleConfig
     {
-        public Guid SiteId { get; set; } = Guid.Empty;
+        public SiteModuleConfig(Guid siteId)
+        {
+            SiteId = siteId;
+        }
+
+        public Guid SiteId { get; }
     }
 }
