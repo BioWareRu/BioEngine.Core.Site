@@ -1,8 +1,8 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using BioEngine.Core.Modules;
 using BioEngine.Core.Repository;
+using BioEngine.Core.Web;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -15,7 +15,7 @@ using Microsoft.Extensions.Options;
 
 namespace BioEngine.Core.Site
 {
-    public class SiteModule : BioEngineModule
+    public class SiteModule : WebModule
     {
         public override void ConfigureServices(IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
         {
