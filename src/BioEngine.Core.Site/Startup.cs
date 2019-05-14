@@ -13,7 +13,7 @@ namespace BioEngine.Core.Site
     {
         protected readonly IConfiguration Configuration;
 
-        public BioEngineStartup(IConfiguration configuration)
+        protected BioEngineStartup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
@@ -43,18 +43,6 @@ namespace BioEngine.Core.Site
 
             app.UseStaticFiles();
 
-            app.UseRouting();
-
-            ConfigureApp(app, env);
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-        }
-
-        protected virtual void ConfigureApp(IApplicationBuilder app, IHostEnvironment env)
-        {
             if (env.IsProduction())
             {
                 var options = new ForwardedHeadersOptions
@@ -68,6 +56,19 @@ namespace BioEngine.Core.Site
 
                 app.UseStatusCodePagesWithReExecute("/error/{0}");
             }
+
+            app.UseRouting();
+
+            ConfigureApp(app, env);
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+        }
+
+        protected virtual void ConfigureApp(IApplicationBuilder app, IHostEnvironment env)
+        {
         }
     }
 }
