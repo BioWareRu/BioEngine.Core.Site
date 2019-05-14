@@ -116,9 +116,9 @@ namespace BioEngine.Core.Site.Model
     public class EntityViewModel<TEntity> : PageViewModel where TEntity : class, IEntity, IRoutable
     {
         public TEntity Entity { get; }
-        public EntityViewMode Mode { get; }
+        public ContentEntityViewMode Mode { get; }
 
-        public EntityViewModel(PageViewModelContext context, TEntity entity, EntityViewMode mode = EntityViewMode.List)
+        public EntityViewModel(PageViewModelContext context, TEntity entity, ContentEntityViewMode mode = ContentEntityViewMode.List)
             : base(context)
         {
             Entity = entity;
@@ -191,18 +191,12 @@ namespace BioEngine.Core.Site.Model
         public Uri CommentsUri { get; }
 
         public PostViewModel(PageViewModelContext context, Post entity, int commentsCount, Uri commentsUri,
-            EntityViewMode mode = EntityViewMode.List) :
+            ContentEntityViewMode mode = ContentEntityViewMode.List) :
             base(context, entity, mode)
         {
             CommentsCount = commentsCount;
             CommentsUri = commentsUri;
         }
-    }
-
-    public enum EntityViewMode
-    {
-        List,
-        Entity
     }
 
     public class PageViewModelContext

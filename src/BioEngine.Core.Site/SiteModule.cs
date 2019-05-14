@@ -69,16 +69,6 @@ namespace BioEngine.Core.Site
         }
     }
 
-    public class CurrentSiteFeature
-    {
-        public CurrentSiteFeature(Entities.Site site)
-        {
-            Site = site;
-        }
-
-        public Entities.Site Site { get; }
-    }
-
     public class SiteModuleConfig : WebModuleConfig
     {
         public SiteModuleConfig(Guid siteId)

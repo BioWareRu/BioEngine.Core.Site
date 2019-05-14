@@ -39,7 +39,7 @@ namespace BioEngine.Core.Site.Controllers
             var commentsData = await _commentsProvider.GetCommentsDataAsync(new IContentEntity[] {post});
 
             return View(new PostViewModel(GetPageContext(), post, commentsData[post.Id].count,
-                commentsData[post.Id].uri, EntityViewMode.Entity));
+                commentsData[post.Id].uri, ContentEntityViewMode.Entity));
         }
 
         [HttpGet("posts/tag/{tagName}/page/{page}.html")]

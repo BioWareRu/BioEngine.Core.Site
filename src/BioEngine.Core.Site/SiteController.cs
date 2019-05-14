@@ -77,7 +77,7 @@ namespace BioEngine.Core.Site
                 return NotFound();
             }
 
-            return View(new EntityViewModel<TEntity>(GetPageContext(), entity, EntityViewMode.Entity));
+            return View(new EntityViewModel<TEntity>(GetPageContext(), entity, ContentEntityViewMode.Entity));
         }
 
         protected void BuildQueryContext(QueryContext context, int page = 0)
