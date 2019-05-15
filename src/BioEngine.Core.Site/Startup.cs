@@ -53,10 +53,12 @@ namespace BioEngine.Core.Site
                 options.KnownNetworks.Clear();
                 options.RequireHeaderSymmetry = false;
                 app.UseForwardedHeaders(options);
-
-                app.UseStatusCodePagesWithReExecute("/error/{0}");
             }
+            
+            app.UseStatusCodePagesWithReExecute("/error/{0}");
 
+            app.UseMiddleware<CurrentSiteMiddleware>();
+            
             app.UseRouting();
 
             ConfigureApp(app, env);

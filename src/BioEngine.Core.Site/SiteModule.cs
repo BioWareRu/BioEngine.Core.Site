@@ -4,13 +4,12 @@ using System.Threading.Tasks;
 using BioEngine.Core.Repository;
 using BioEngine.Core.Web;
 using JetBrains.Annotations;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace BioEngine.Core.Site
 {
@@ -21,21 +20,8 @@ namespace BioEngine.Core.Site
         {
             base.ConfigureServices(services, configuration, environment);
             services.AddSingleton(Config);
-            services.AddSingleton<IStartupFilter, CurrentSiteStartupFilter>();
             services.AddHttpContextAccessor();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
-        }
-    }
-
-    public class CurrentSiteStartupFilter : IStartupFilter
-    {
-        public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
-        {
-            return builder =>
-            {
-                builder.UseMiddleware<CurrentSiteMiddleware>();
-                next(builder);
-            };
         }
     }
 
@@ -44,28 +30,38 @@ namespace BioEngine.Core.Site
     {
         private readonly RequestDelegate _next;
         private readonly SiteModuleConfig _options;
+        private readonly ILogger<CurrentSiteMiddleware> _logger;
 
-        public CurrentSiteMiddleware(RequestDelegate next, SiteModuleConfig options)
+        public CurrentSiteMiddleware(RequestDelegate next, SiteModuleConfig options,
+            ILogger<CurrentSiteMiddleware> logger)
         {
             _next = next;
             _options = options;
+            _logger = logger;
         }
 
         [UsedImplicitly]
         [SuppressMessage("AsyncUsage.CSharp.Naming", "UseAsyncSuffix", Justification = "Reviewed.")]
         public async Task Invoke(HttpContext context)
         {
-            var repository = context.RequestServices.GetRequiredService<SitesRepository>();
-            var site = await repository.GetByIdAsync(_options.SiteId);
+            Entities.Site site = null;
+            try
+            {
+                var repository = context.RequestServices.GetRequiredService<SitesRepository>();
+                site = await repository.GetByIdAsync(_options.SiteId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in site middleware: {errorText}", ex.ToString());
+            }
+
             if (site == null)
             {
-                context.Response.StatusCode = 401;
+                throw new Exception("Site is not configured");
             }
-            else
-            {
-                context.Features.Set(new CurrentSiteFeature(site));
-                await _next.Invoke(context);
-            }
+
+            context.Features.Set(new CurrentSiteFeature(site));
+            await _next.Invoke(context);
         }
     }
 
