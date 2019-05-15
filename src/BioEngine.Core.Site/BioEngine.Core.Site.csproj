@@ -13,7 +13,6 @@
     <PackageReference Include="BioEngine.Core.Web" Version="3.0.*" Condition="!Exists('..\..\..\BioEngine.Core')" />
     <PackageReference Include="BioEngine.Core.Search" Version="3.0.*" Condition="!Exists('..\..\..\BioEngine.Core')" />
     <PackageReference Include="BioEngine.Core.Seo" Version="3.0.*" Condition="!Exists('..\..\..\BioEngine.Core')" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0-preview5-19227-01" />
     <PackageReference Include="WilderMinds.RssSyndication" Version="1.5.0" />
   </ItemGroup>
   <ItemGroup>
