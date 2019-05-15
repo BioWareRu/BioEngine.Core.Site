@@ -23,6 +23,8 @@ namespace BioEngine.Core.Site
             services.AddControllersWithViews()
                 .AddNewtonsoftJson()
                 .SetCompatibilityVersion(CompatibilityVersion.Latest);
+
+            services.AddHealthChecks();
         }
 
         public virtual void Configure(IApplicationBuilder app, IHostEnvironment env)
@@ -66,6 +68,7 @@ namespace BioEngine.Core.Site
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health");
             });
         }
 
