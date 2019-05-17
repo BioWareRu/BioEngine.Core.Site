@@ -2,7 +2,9 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using BioEngine.Core.Repository;
+using BioEngine.Core.Site.Sitemaps;
 using BioEngine.Core.Web;
+using cloudscribe.Web.SiteMap;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -22,6 +24,9 @@ namespace BioEngine.Core.Site
             services.AddSingleton(Config);
             services.AddHttpContextAccessor();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+            services.AddScoped<ISiteMapNodeService, PagesSiteMapNodeService>();
+            services.AddScoped<ISiteMapNodeService, PostsSiteMapNodeService>();
+            services.AddScoped<ISiteMapNodeService, SectionsSiteMapNodeService>();
         }
     }
 
