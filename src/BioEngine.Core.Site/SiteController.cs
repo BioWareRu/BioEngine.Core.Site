@@ -56,7 +56,7 @@ namespace BioEngine.Core.Site
         public virtual async Task<IActionResult> ListAsync()
         {
             var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext());
-            return View(new ListViewModel<TEntity>(GetPageContext(), items,
+            return View("List", new ListViewModel<TEntity>(GetPageContext(), items,
                 itemsCount, Page, ItemsPerPage));
         }
 
@@ -64,7 +64,7 @@ namespace BioEngine.Core.Site
         public virtual async Task<IActionResult> ListPageAsync(int page)
         {
             var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext(page));
-            return View(new ListViewModel<TEntity>(GetPageContext(), items,
+            return View("List", new ListViewModel<TEntity>(GetPageContext(), items,
                 itemsCount, Page, ItemsPerPage));
         }
 

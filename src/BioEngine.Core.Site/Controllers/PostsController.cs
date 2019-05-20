@@ -71,7 +71,7 @@ namespace BioEngine.Core.Site.Controllers
             context.SetTag(tag);
 
             var (items, itemsCount) = await Repository.GetAllAsync(context);
-            return View(new ListViewModel<Post>(GetPageContext(), items,
+            return View("List", new ListViewModel<Post>(GetPageContext(), items,
                 itemsCount, Page, ItemsPerPage) {Tag = tag});
         }
 
