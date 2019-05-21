@@ -63,7 +63,7 @@ namespace BioEngine.Core.Site.Controllers
 
             var titles = tagTitles.Split("+").Select(t => t.ToLowerInvariant()).ToArray();
 
-            var tags = await TagsRepository.GetAllAsync(q => q.Where(t => titles.Contains(t.Title.ToLowerInvariant())));
+            var tags = await TagsRepository.GetAllAsync(q => q.Where(t => titles.Contains(t.Title.ToLower())));
             if (!tags.Any())
             {
                 return NotFound();
