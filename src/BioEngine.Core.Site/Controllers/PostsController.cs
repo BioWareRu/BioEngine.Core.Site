@@ -64,7 +64,7 @@ namespace BioEngine.Core.Site.Controllers
             var tag = await TagsRepository.GetAsync(q => q.Where(t => t.Title == tagTitle));
             if (tag == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
             var context = GetQueryContext(page);
