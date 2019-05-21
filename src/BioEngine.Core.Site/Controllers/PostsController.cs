@@ -54,25 +54,27 @@ namespace BioEngine.Core.Site.Controllers
             return ShowListByTagAsync(tagName, 0);
         }
 
-        protected virtual async Task<IActionResult> ShowListByTagAsync(string tagTitle, int page)
+        protected virtual async Task<IActionResult> ShowListByTagAsync(string tagTitles, int page)
         {
-            if (string.IsNullOrEmpty(tagTitle))
+            if (string.IsNullOrEmpty(tagTitles))
             {
                 return BadRequest();
             }
 
-            var tag = await TagsRepository.GetAsync(q => q.Where(t => t.Title == tagTitle));
-            if (tag == null)
+            var titles = tagTitles.Split("+").Select(t => t.ToLowerInvariant()).ToArray();
+
+            var tags = await TagsRepository.GetAllAsync(q => q.Where(t => titles.Contains(t.Title.ToLowerInvariant())));
+            if (!tags.Any())
             {
                 return NotFound();
             }
 
             var context = GetQueryContext(page);
-            context.SetTag(tag);
+            context.SetTags(tags);
 
             var (items, itemsCount) = await Repository.GetAllAsync(context);
             return View("List", new ListViewModel<Post>(GetPageContext(), items,
-                itemsCount, Page, ItemsPerPage) {Tag = tag});
+                itemsCount, Page, ItemsPerPage) {Tags = tags});
         }
 
         [HttpGet("/rss.xml")]

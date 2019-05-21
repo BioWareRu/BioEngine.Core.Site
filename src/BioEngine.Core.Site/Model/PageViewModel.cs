@@ -84,7 +84,7 @@ namespace BioEngine.Core.Site.Model
         public int Page { get; }
         public int ItemsPerPage { get; }
 
-        public Tag Tag { get; set; }
+        public Tag[] Tags { get; set; }
 
         public ListViewModel(PageViewModelContext context, TEntity[] items, int totalItems, int page,
             int itemsPerPage) :
@@ -99,9 +99,9 @@ namespace BioEngine.Core.Site.Model
         public override async Task<PageMetaModel> GetMetaAsync()
         {
             var meta = await base.GetMetaAsync();
-            if (Tag != null)
+            if (Tags != null && Tags.Any())
             {
-                meta.Title = $"{Tag.Title} / {Site.Title}";
+                meta.Title = $"{string.Join(", ", Tags.Select(t => t.Title))} / {Site.Title}";
             }
 
             return meta;
@@ -118,7 +118,8 @@ namespace BioEngine.Core.Site.Model
         public TEntity Entity { get; }
         public ContentEntityViewMode Mode { get; }
 
-        public EntityViewModel(PageViewModelContext context, TEntity entity, ContentEntityViewMode mode = ContentEntityViewMode.List)
+        public EntityViewModel(PageViewModelContext context, TEntity entity,
+            ContentEntityViewMode mode = ContentEntityViewMode.List)
             : base(context)
         {
             Entity = entity;
