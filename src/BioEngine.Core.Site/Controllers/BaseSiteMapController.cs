@@ -9,15 +9,13 @@ using Microsoft.Extensions.Logging;
 
 namespace BioEngine.Core.Site.Controllers
 {
-    public class SitemapController : SiteMapController
+    public abstract class BaseSiteMapController : SiteMapController
     {
-        public SitemapController(ILogger<SiteMapController> logger,
+        protected BaseSiteMapController(ILogger<SiteMapController> logger,
             IEnumerable<ISiteMapNodeService> nodeProviders = null) : base(logger, nodeProviders)
         {
         }
 
-        [HttpGet("/sitemap.xml")]
-        [ResponseCache(CacheProfileName = "SiteMapCacheProfile")]
         [SuppressMessage("ReSharper", "UseAsyncSuffix")]
         public override Task<IActionResult> Index()
         {

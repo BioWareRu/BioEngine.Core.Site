@@ -9,25 +9,20 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BioEngine.Core.Site
 {
-    public abstract class SectionController<TSection> : SiteController<TSection>
-        where TSection : Section, IEntity
+    public abstract class SectionController<TSection, TRepository> : SiteController<TSection, TRepository>
+        where TSection : Section, IEntity where TRepository : ContentEntityRepository<TSection>
     {
-        private readonly PostsRepository _postsRepository;
+        private readonly ContentItemsRepository _contentItemsRepository;
 
-        protected SectionController(BaseControllerContext<TSection> context, PostsRepository postsRepository) :
+        protected SectionController(
+            BaseControllerContext<TSection, ContentEntityQueryContext<TSection>, TRepository> context,
+            ContentItemsRepository contentItemsRepository) :
             base(context)
         {
-            _postsRepository = postsRepository;
+            _contentItemsRepository = contentItemsRepository;
         }
 
-        [HttpGet("{url}/about.html")]
-        public Task<IActionResult> AboutAsync(string url)
-        {
-            return base.ShowAsync(url);
-        }
-
-        [HttpGet("{url}/posts.html")]
-        protected virtual async Task<IActionResult> ShowPostsAsync(string url, int page)
+        protected virtual async Task<IActionResult> ShowContentAsync(string[] types, string url, int page)
         {
             var section = await Repository.GetAsync(entities => entities.Where(e => e.Url == url && e.IsPublished));
             if (section == null)
@@ -35,30 +30,29 @@ namespace BioEngine.Core.Site
                 return NotFound();
             }
 
-            var postsContext = new QueryContext<Post> {Limit = ItemsPerPage};
-            BuildQueryContext(postsContext, page);
-            postsContext.SetSection(section);
+            var contentContext = new ContentEntityQueryContext<ContentItem> {Limit = ItemsPerPage};
+            BuildQueryContext(contentContext, page);
+            contentContext.SetSection(section);
 
-            var (items, itemsCount) = await _postsRepository.GetAllAsync(postsContext);
-            return View("Posts", new ListViewModel<Post>(GetPageContext(section), items,
+            var (items, itemsCount) = await _contentItemsRepository.GetAllAsync(contentContext,
+                queryable => queryable.Where(c => types.Contains(c.Type)));
+            return View("Content", new ListViewModel<ContentItem>(GetPageContext(section), items,
                 itemsCount, Page, ItemsPerPage));
         }
 
-        [HttpGet("{url}/posts.html")]
-        public virtual Task<IActionResult> PostsAsync(string url)
+        public virtual Task<IActionResult> PostsAsync(string[] types, string url)
         {
-            return ShowPostsAsync(url, 0);
+            return ShowContentAsync(types, url, 0);
         }
 
-        [HttpGet("{url}/posts/page/{page}.html")]
-        public virtual Task<IActionResult> PostsPageAsync(string url, int page)
+        public virtual Task<IActionResult> PostsPageAsync(string[] types, string url, int page)
         {
-            return ShowPostsAsync(url, page);
+            return ShowContentAsync(types, url, page);
         }
 
         protected virtual PageViewModelContext GetPageContext(TSection section)
         {
-            var context = new PageViewModelContext(PropertiesProvider, Site, section);
+            var context = new PageViewModelContext(LinkGenerator, PropertiesProvider, Site, section);
 
             return context;
         }

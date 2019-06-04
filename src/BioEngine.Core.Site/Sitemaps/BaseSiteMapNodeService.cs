@@ -5,30 +5,36 @@ using System.Threading.Tasks;
 using BioEngine.Core.DB;
 using BioEngine.Core.Entities;
 using BioEngine.Core.Repository;
+using BioEngine.Core.Routing;
 using BioEngine.Core.Web;
 using cloudscribe.Web.SiteMap;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 
 namespace BioEngine.Core.Site.Sitemaps
 {
-    public abstract class BaseSiteMapNodeService<T> : ISiteMapNodeService where T : class, IRoutable, IEntity
+    public abstract class BaseSiteMapNodeService<T> : ISiteMapNodeService where T : class, IContentEntity
     {
-        protected readonly IBioRepository<T> Repository;
+        protected readonly IBioRepository<T, ContentEntityQueryContext<T>> Repository;
+        protected readonly LinkGenerator LinkGenerator;
         protected readonly Entities.Site Site;
         protected virtual double Priority { get; } = 0.8;
         protected virtual PageChangeFrequency Frequency { get; } = PageChangeFrequency.Weekly;
 
-        protected BaseSiteMapNodeService(IHttpContextAccessor httpContextAccessor, IBioRepository<T> repository)
+        protected BaseSiteMapNodeService(IHttpContextAccessor httpContextAccessor,
+            IBioRepository<T, ContentEntityQueryContext<T>> repository,
+            LinkGenerator linkGenerator)
         {
             Site = httpContextAccessor.HttpContext.Features.Get<CurrentSiteFeature>().Site;
             Repository = repository;
+            LinkGenerator = linkGenerator;
         }
 
         [SuppressMessage("ReSharper", "UseAsyncSuffix")]
         public async Task<IEnumerable<ISiteMapNode>> GetSiteMapNodes(
             CancellationToken cancellationToken = new CancellationToken())
         {
-            var queryContext = new QueryContext<T> {IncludeUnpublished = false};
+            var queryContext = new ContentEntityQueryContext<T> {IncludeUnpublished = false};
             queryContext.SetSite(Site);
             var entities = await Repository.GetAllAsync(queryContext);
 
@@ -47,7 +53,7 @@ namespace BioEngine.Core.Site.Sitemaps
         {
             var result = new List<ISiteMapNode>
             {
-                new SiteMapNode(entity.PublicUrl)
+                new SiteMapNode(LinkGenerator.GeneratePublicUrl(entity).ToString())
                 {
                     LastModified = entity.DateUpdated.DateTime, ChangeFrequency = Frequency, Priority = Priority
                 }

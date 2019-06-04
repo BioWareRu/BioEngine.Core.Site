@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using BioEngine.Core.DB;
 using BioEngine.Core.Entities;
 using BioEngine.Core.Repository;
+using BioEngine.Core.Routing;
 using BioEngine.Core.Site.Model;
 using BioEngine.Core.Web;
 using JetBrains.Annotations;
@@ -33,15 +34,19 @@ namespace BioEngine.Core.Site
 
         protected virtual PageViewModelContext GetPageContext()
         {
-            var context = new PageViewModelContext(PropertiesProvider, Site);
+            var context = new PageViewModelContext(LinkGenerator, PropertiesProvider, Site);
 
             return context;
         }
     }
 
-    public abstract class SiteController<TEntity> : BaseSiteController where TEntity : class, IEntity, IRoutable
+    public abstract class SiteController<TEntity, TRepository> : BaseSiteController
+        where TEntity : class, IEntity, IRoutable, IContentEntity
+        where TRepository : ContentEntityRepository<TEntity>
     {
-        protected SiteController(BaseControllerContext<TEntity> context) : base(context)
+        protected SiteController(
+            BaseControllerContext<TEntity, ContentEntityQueryContext<TEntity>, TRepository> context)
+            : base(context)
         {
             Repository = context.Repository;
         }
@@ -49,10 +54,9 @@ namespace BioEngine.Core.Site
         protected int Page { get; private set; } = 1;
         protected virtual int ItemsPerPage { get; } = 20;
 
-        [PublicAPI] protected IBioRepository<TEntity> Repository;
+        [PublicAPI] protected IBioRepository<TEntity, ContentEntityQueryContext<TEntity>> Repository;
 
 
-        [HttpGet]
         public virtual async Task<IActionResult> ListAsync()
         {
             var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext());
@@ -60,7 +64,6 @@ namespace BioEngine.Core.Site
                 itemsCount, Page, ItemsPerPage));
         }
 
-        [HttpGet("page/{page}.html")]
         public virtual async Task<IActionResult> ListPageAsync(int page)
         {
             var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext(page));
@@ -68,7 +71,7 @@ namespace BioEngine.Core.Site
                 itemsCount, Page, ItemsPerPage));
         }
 
-        [HttpGet("{url}.html")]
+
         public virtual async Task<IActionResult> ShowAsync(string url)
         {
             var entity = await Repository.GetAsync(entities => entities.Where(e => e.Url == url && e.IsPublished));
@@ -98,9 +101,9 @@ namespace BioEngine.Core.Site
         }
 
         [PublicAPI]
-        protected QueryContext<TEntity> GetQueryContext(int page = 0)
+        protected ContentEntityQueryContext<TEntity> GetQueryContext(int page = 0)
         {
-            var context = new QueryContext<TEntity> {Limit = ItemsPerPage};
+            var context = new ContentEntityQueryContext<TEntity> {Limit = ItemsPerPage};
 
             BuildQueryContext(context, page);
 
@@ -110,7 +113,7 @@ namespace BioEngine.Core.Site
             }
             else
             {
-                context.SetOrderByDescending(e => e.DatePublished);
+                context.SetOrderByDescending(e => e.DateUpdated);
             }
 
             return context;

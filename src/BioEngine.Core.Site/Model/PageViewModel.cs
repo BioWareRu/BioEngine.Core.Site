@@ -4,8 +4,10 @@ using System.Threading.Tasks;
 using BioEngine.Core.Entities;
 using BioEngine.Core.Entities.Blocks;
 using BioEngine.Core.Properties;
+using BioEngine.Core.Routing;
 using BioEngine.Core.Seo;
 using HtmlAgilityPack;
+using Microsoft.AspNetCore.Routing;
 
 namespace BioEngine.Core.Site.Model
 {
@@ -14,13 +16,16 @@ namespace BioEngine.Core.Site.Model
         public readonly Entities.Site Site;
         public readonly Section Section;
         protected readonly PropertiesProvider PropertiesProvider;
+        protected readonly LinkGenerator LinkGenerator;
 
         protected PageViewModel(PageViewModelContext context)
         {
             Site = context.Site;
             Section = context.Section;
             PropertiesProvider = context.PropertiesProvider;
+            LinkGenerator = context.LinkGenerator;
         }
+
 
         private PageMetaModel _meta;
 
@@ -76,7 +81,7 @@ namespace BioEngine.Core.Site.Model
         }
     }
 
-    public class ListViewModel<TEntity> : PageViewModel where TEntity : class, IEntity, IRoutable
+    public class ListViewModel<TEntity> : PageViewModel where TEntity : class, IEntity
     {
         public TEntity[] Items { get; }
         public int TotalItems { get; }
@@ -109,7 +114,7 @@ namespace BioEngine.Core.Site.Model
 
         public PageViewModelContext GetContext()
         {
-            return new PageViewModelContext(PropertiesProvider, Site, Section);
+            return new PageViewModelContext(LinkGenerator, PropertiesProvider, Site, Section);
         }
     }
 
@@ -128,9 +133,10 @@ namespace BioEngine.Core.Site.Model
 
         public override async Task<PageMetaModel> GetMetaAsync()
         {
+            var path = LinkGenerator.GeneratePublicUrl(Entity);
             var meta = new PageMetaModel
             {
-                Title = $"{Entity.Title} / {Site.Title}", CurrentUrl = new Uri($"{Site.Url}{Entity.PublicUrl}")
+                Title = $"{Entity.Title} / {Site.Title}", CurrentUrl = new Uri($"{Site.Url}{path}")
             };
 
             var seoPropertiesSet = await PropertiesProvider.GetAsync<SeoPropertiesSet>(Entity);
@@ -177,7 +183,8 @@ namespace BioEngine.Core.Site.Model
         {
             if (Entity is IContentEntity contentEntity)
             {
-                return new EntityViewModel<IContentEntity>(new PageViewModelContext(PropertiesProvider, Site, Section),
+                return new EntityViewModel<IContentEntity>(
+                    new PageViewModelContext(LinkGenerator, PropertiesProvider, Site, Section),
                     contentEntity,
                     Mode);
             }
@@ -186,12 +193,12 @@ namespace BioEngine.Core.Site.Model
         }
     }
 
-    public class PostViewModel : EntityViewModel<Post>
+    public class ContentItemViewModel : EntityViewModel<ContentItem>
     {
         public int CommentsCount { get; }
         public Uri CommentsUri { get; }
 
-        public PostViewModel(PageViewModelContext context, Post entity, int commentsCount, Uri commentsUri,
+        public ContentItemViewModel(PageViewModelContext context, ContentItem entity, int commentsCount, Uri commentsUri,
             ContentEntityViewMode mode = ContentEntityViewMode.List) :
             base(context, entity, mode)
         {
@@ -202,14 +209,16 @@ namespace BioEngine.Core.Site.Model
 
     public class PageViewModelContext
     {
-        public PageViewModelContext(PropertiesProvider propertiesProvider,
+        public PageViewModelContext(LinkGenerator linkGenerator, PropertiesProvider propertiesProvider,
             Entities.Site site, Section section = null)
         {
+            LinkGenerator = linkGenerator;
             PropertiesProvider = propertiesProvider;
             Site = site;
             Section = section;
         }
 
+        public LinkGenerator LinkGenerator { get; }
         public PropertiesProvider PropertiesProvider { get; }
         public Entities.Site Site { get; }
         public Section Section { get; }

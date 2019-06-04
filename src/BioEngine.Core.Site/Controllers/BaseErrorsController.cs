@@ -7,14 +7,13 @@ using Microsoft.Extensions.Logging;
 
 namespace BioEngine.Core.Site.Controllers
 {
-    public class ErrorsController : BaseSiteController
+    public abstract class BaseErrorsController : BaseSiteController
     {
-        public ErrorsController(BaseControllerContext context) : base(context)
+        protected BaseErrorsController(BaseControllerContext context) : base(context)
         {
         }
 
-        [Route("/error/{errorCode}")]
-        public IActionResult Error(int errorCode, [FromServices] ILogger<ErrorsController> logger)
+        public virtual IActionResult Error(int errorCode, [FromServices] ILogger<BaseErrorsController> logger)
         {
             if (errorCode == StatusCodes.Status404NotFound)
             {

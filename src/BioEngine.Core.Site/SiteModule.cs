@@ -24,8 +24,6 @@ namespace BioEngine.Core.Site
             services.AddSingleton(Config);
             services.AddHttpContextAccessor();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
-            services.AddScoped<ISiteMapNodeService, PagesSiteMapNodeService>();
-            services.AddScoped<ISiteMapNodeService, PostsSiteMapNodeService>();
             services.AddScoped<ISiteMapNodeService, SectionsSiteMapNodeService>();
         }
     }
