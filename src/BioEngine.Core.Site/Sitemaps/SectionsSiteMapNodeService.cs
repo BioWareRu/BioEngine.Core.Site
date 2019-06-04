@@ -11,10 +11,9 @@ namespace BioEngine.Core.Site.Sitemaps
     public abstract class SectionsSiteMapNodeService : BaseSiteMapNodeService<Section>
     {
         protected SectionsSiteMapNodeService(IHttpContextAccessor httpContextAccessor,
-            IQueryContext<Section> queryContext,
             IBioRepository<Section> repository,
             LinkGenerator linkGenerator)
-            : base(httpContextAccessor, queryContext, repository, linkGenerator)
+            : base(httpContextAccessor, repository, linkGenerator)
         {
         }
 

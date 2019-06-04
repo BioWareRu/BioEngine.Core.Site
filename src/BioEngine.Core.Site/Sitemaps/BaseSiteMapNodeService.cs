@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BioEngine.Core.Abstractions;
+using BioEngine.Core.DB.Queries;
 using BioEngine.Core.Routing;
 using BioEngine.Core.Web;
 using cloudscribe.Web.SiteMap;
@@ -14,7 +15,6 @@ namespace BioEngine.Core.Site.Sitemaps
 {
     public abstract class BaseSiteMapNodeService<T> : ISiteMapNodeService where T : class, IContentEntity
     {
-        protected readonly IQueryContext<T> QueryContext;
         protected readonly IBioRepository<T> Repository;
         protected readonly LinkGenerator LinkGenerator;
         protected readonly Entities.Site Site;
@@ -22,12 +22,10 @@ namespace BioEngine.Core.Site.Sitemaps
         protected virtual PageChangeFrequency Frequency { get; } = PageChangeFrequency.Weekly;
 
         protected BaseSiteMapNodeService(IHttpContextAccessor httpContextAccessor,
-            IQueryContext<T> queryContext,
             IBioRepository<T> repository,
             LinkGenerator linkGenerator)
         {
             Site = httpContextAccessor.HttpContext.Features.Get<CurrentSiteFeature>().Site;
-            QueryContext = queryContext;
             Repository = repository;
             LinkGenerator = linkGenerator;
         }
@@ -36,8 +34,9 @@ namespace BioEngine.Core.Site.Sitemaps
         public async Task<IEnumerable<ISiteMapNode>> GetSiteMapNodes(
             CancellationToken cancellationToken = new CancellationToken())
         {
-            QueryContext.SetSite(Site);
-            var entities = await Repository.GetAllAsync(QueryContext, 
+            var queryContext = new QueryContext<T>();
+            queryContext.SetSite(Site);
+            var entities = await Repository.GetAllAsync(queryContext, 
                 queryable => queryable.Where(c => c.IsPublished));
 
             var result = new List<ISiteMapNode>();

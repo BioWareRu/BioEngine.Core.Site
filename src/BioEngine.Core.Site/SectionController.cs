@@ -1,12 +1,12 @@
 using System.Linq;
 using System.Threading.Tasks;
 using BioEngine.Core.Abstractions;
+using BioEngine.Core.DB.Queries;
 using BioEngine.Core.Entities;
 using BioEngine.Core.Repository;
 using BioEngine.Core.Site.Model;
 using BioEngine.Core.Web;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace BioEngine.Core.Site
 {
@@ -31,8 +31,7 @@ namespace BioEngine.Core.Site
                 return NotFound();
             }
 
-            var contentContext = HttpContext.RequestServices.GetRequiredService<IQueryContext<ContentItem>>();
-            contentContext.Limit = ItemsPerPage;
+            var contentContext = new QueryContext<ContentItem> {Limit = ItemsPerPage};
             BuildQueryContext(contentContext, page);
             contentContext.SetSection(section);
 

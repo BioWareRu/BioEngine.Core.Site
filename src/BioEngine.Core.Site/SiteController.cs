@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using BioEngine.Core.Abstractions;
+using BioEngine.Core.DB.Queries;
 using BioEngine.Core.Repository;
 using BioEngine.Core.Routing;
 using BioEngine.Core.Site.Model;
@@ -85,7 +86,7 @@ namespace BioEngine.Core.Site
             return View(new EntityViewModel<TEntity>(GetPageContext(), entity, ContentEntityViewMode.Entity));
         }
 
-        protected void BuildQueryContext(IQueryContext context, int page = 0)
+        protected void BuildQueryContext(QueryContext context, int page = 0)
         {
             if (page > 0)
             {
@@ -103,9 +104,9 @@ namespace BioEngine.Core.Site
         }
 
         [PublicAPI]
-        protected IQueryContext<TEntity> GetQueryContext(int page = 0)
+        protected QueryContext<TEntity> GetQueryContext(int page = 0)
         {
-            var context = HttpContext.RequestServices.GetRequiredService<IQueryContext<TEntity>>();
+            var context = HttpContext.RequestServices.GetRequiredService<QueryContext<TEntity>>();
             context.Limit = ItemsPerPage;
 
             BuildQueryContext(context, page);
