@@ -1,11 +1,12 @@
 using System.Linq;
 using System.Threading.Tasks;
-using BioEngine.Core.DB;
+using BioEngine.Core.Abstractions;
 using BioEngine.Core.Entities;
 using BioEngine.Core.Repository;
 using BioEngine.Core.Site.Model;
 using BioEngine.Core.Web;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BioEngine.Core.Site
 {
@@ -15,7 +16,7 @@ namespace BioEngine.Core.Site
         private readonly ContentItemsRepository _contentItemsRepository;
 
         protected SectionController(
-            BaseControllerContext<TSection, ContentEntityQueryContext<TSection>, TRepository> context,
+            BaseControllerContext<TSection, TRepository> context,
             ContentItemsRepository contentItemsRepository) :
             base(context)
         {
@@ -30,12 +31,13 @@ namespace BioEngine.Core.Site
                 return NotFound();
             }
 
-            var contentContext = new ContentEntityQueryContext<ContentItem> {Limit = ItemsPerPage};
+            var contentContext = HttpContext.RequestServices.GetRequiredService<IQueryContext<ContentItem>>();
+            contentContext.Limit = ItemsPerPage;
             BuildQueryContext(contentContext, page);
             contentContext.SetSection(section);
 
             var (items, itemsCount) = await _contentItemsRepository.GetAllAsync(contentContext,
-                queryable => queryable.Where(c => types.Contains(c.Type)));
+                queryable => queryable.Where(c => types.Contains(c.Type) && c.IsPublished));
             return View("Content", new ListViewModel<ContentItem>(GetPageContext(section), items,
                 itemsCount, Page, ItemsPerPage));
         }

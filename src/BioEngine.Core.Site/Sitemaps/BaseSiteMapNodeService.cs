@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BioEngine.Core.DB;
-using BioEngine.Core.Entities;
-using BioEngine.Core.Repository;
+using BioEngine.Core.Abstractions;
 using BioEngine.Core.Routing;
 using BioEngine.Core.Web;
 using cloudscribe.Web.SiteMap;
@@ -15,17 +14,20 @@ namespace BioEngine.Core.Site.Sitemaps
 {
     public abstract class BaseSiteMapNodeService<T> : ISiteMapNodeService where T : class, IContentEntity
     {
-        protected readonly IBioRepository<T, ContentEntityQueryContext<T>> Repository;
+        protected readonly IQueryContext<T> QueryContext;
+        protected readonly IBioRepository<T> Repository;
         protected readonly LinkGenerator LinkGenerator;
         protected readonly Entities.Site Site;
         protected virtual double Priority { get; } = 0.8;
         protected virtual PageChangeFrequency Frequency { get; } = PageChangeFrequency.Weekly;
 
         protected BaseSiteMapNodeService(IHttpContextAccessor httpContextAccessor,
-            IBioRepository<T, ContentEntityQueryContext<T>> repository,
+            IQueryContext<T> queryContext,
+            IBioRepository<T> repository,
             LinkGenerator linkGenerator)
         {
             Site = httpContextAccessor.HttpContext.Features.Get<CurrentSiteFeature>().Site;
+            QueryContext = queryContext;
             Repository = repository;
             LinkGenerator = linkGenerator;
         }
@@ -34,9 +36,9 @@ namespace BioEngine.Core.Site.Sitemaps
         public async Task<IEnumerable<ISiteMapNode>> GetSiteMapNodes(
             CancellationToken cancellationToken = new CancellationToken())
         {
-            var queryContext = new ContentEntityQueryContext<T> {IncludeUnpublished = false};
-            queryContext.SetSite(Site);
-            var entities = await Repository.GetAllAsync(queryContext);
+            QueryContext.SetSite(Site);
+            var entities = await Repository.GetAllAsync(QueryContext, 
+                queryable => queryable.Where(c => c.IsPublished));
 
             var result = new List<ISiteMapNode>();
             foreach (var entity in entities.items)

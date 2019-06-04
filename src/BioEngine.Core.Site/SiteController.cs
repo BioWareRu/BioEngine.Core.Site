@@ -1,14 +1,14 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using BioEngine.Core.DB;
-using BioEngine.Core.Entities;
+using BioEngine.Core.Abstractions;
 using BioEngine.Core.Repository;
 using BioEngine.Core.Routing;
 using BioEngine.Core.Site.Model;
 using BioEngine.Core.Web;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BioEngine.Core.Site
 {
@@ -45,7 +45,7 @@ namespace BioEngine.Core.Site
         where TRepository : ContentEntityRepository<TEntity>
     {
         protected SiteController(
-            BaseControllerContext<TEntity, ContentEntityQueryContext<TEntity>, TRepository> context)
+            BaseControllerContext<TEntity, TRepository> context)
             : base(context)
         {
             Repository = context.Repository;
@@ -54,19 +54,21 @@ namespace BioEngine.Core.Site
         protected int Page { get; private set; } = 1;
         protected virtual int ItemsPerPage { get; } = 20;
 
-        [PublicAPI] protected IBioRepository<TEntity, ContentEntityQueryContext<TEntity>> Repository;
+        [PublicAPI] protected IBioRepository<TEntity> Repository;
 
 
         public virtual async Task<IActionResult> ListAsync()
         {
-            var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext());
+            var (items, itemsCount) =
+                await Repository.GetAllAsync(GetQueryContext(), entities => entities.Where(e => e.IsPublished));
             return View("List", new ListViewModel<TEntity>(GetPageContext(), items,
                 itemsCount, Page, ItemsPerPage));
         }
 
         public virtual async Task<IActionResult> ListPageAsync(int page)
         {
-            var (items, itemsCount) = await Repository.GetAllAsync(GetQueryContext(page));
+            var (items, itemsCount) =
+                await Repository.GetAllAsync(GetQueryContext(page), entities => entities.Where(e => e.IsPublished));
             return View("List", new ListViewModel<TEntity>(GetPageContext(), items,
                 itemsCount, Page, ItemsPerPage));
         }
@@ -83,7 +85,7 @@ namespace BioEngine.Core.Site
             return View(new EntityViewModel<TEntity>(GetPageContext(), entity, ContentEntityViewMode.Entity));
         }
 
-        protected void BuildQueryContext(QueryContext context, int page = 0)
+        protected void BuildQueryContext(IQueryContext context, int page = 0)
         {
             if (page > 0)
             {
@@ -101,9 +103,10 @@ namespace BioEngine.Core.Site
         }
 
         [PublicAPI]
-        protected ContentEntityQueryContext<TEntity> GetQueryContext(int page = 0)
+        protected IQueryContext<TEntity> GetQueryContext(int page = 0)
         {
-            var context = new ContentEntityQueryContext<TEntity> {Limit = ItemsPerPage};
+            var context = HttpContext.RequestServices.GetRequiredService<IQueryContext<TEntity>>();
+            context.Limit = ItemsPerPage;
 
             BuildQueryContext(context, page);
 

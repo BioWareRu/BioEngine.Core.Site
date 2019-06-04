@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using BioEngine.Core.Abstractions;
 using BioEngine.Core.Entities;
 using BioEngine.Core.Entities.Blocks;
 using BioEngine.Core.Properties;
