@@ -1,8 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using BioEngine.Core.Abstractions;
-using BioEngine.Core.DB.Queries;
 using BioEngine.Core.Entities;
+using BioEngine.Core.Extensions;
 using BioEngine.Core.Repository;
 using BioEngine.Core.Site.Model;
 using BioEngine.Core.Web;
@@ -31,12 +31,8 @@ namespace BioEngine.Core.Site
                 return NotFound();
             }
 
-            var contentContext = new QueryContext<ContentItem> {Limit = ItemsPerPage};
-            BuildQueryContext(contentContext, page);
-            contentContext.SetSection(section);
-
-            var (items, itemsCount) = await _contentItemsRepository.GetAllAsync(contentContext,
-                queryable => queryable.Where(c => types.Contains(c.Type) && c.IsPublished));
+            var (items, itemsCount) = await _contentItemsRepository.GetAllAsync(queryable =>
+                ConfigureQuery(queryable.ForSection(section).Where(c => types.Contains(c.Type) && c.IsPublished)));
             return View("Content", new ListViewModel<ContentItem>(GetPageContext(section), items,
                 itemsCount, Page, ItemsPerPage));
         }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BioEngine.Core.Abstractions;
-using BioEngine.Core.DB.Queries;
+using BioEngine.Core.Extensions;
 using BioEngine.Core.Routing;
 using BioEngine.Core.Web;
 using cloudscribe.Web.SiteMap;
@@ -34,10 +34,7 @@ namespace BioEngine.Core.Site.Sitemaps
         public async Task<IEnumerable<ISiteMapNode>> GetSiteMapNodes(
             CancellationToken cancellationToken = new CancellationToken())
         {
-            var queryContext = new QueryContext<T>();
-            queryContext.SetSite(Site);
-            var entities = await Repository.GetAllAsync(queryContext, 
-                queryable => queryable.Where(c => c.IsPublished));
+            var entities = await Repository.GetAllAsync(queryable => queryable.ForSite(Site).Where(c => c.IsPublished));
 
             var result = new List<ISiteMapNode>();
             foreach (var entity in entities.items)

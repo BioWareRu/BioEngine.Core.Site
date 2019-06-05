@@ -2,14 +2,13 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using BioEngine.Core.Abstractions;
-using BioEngine.Core.DB.Queries;
+using BioEngine.Core.Extensions;
 using BioEngine.Core.Repository;
 using BioEngine.Core.Routing;
 using BioEngine.Core.Site.Model;
 using BioEngine.Core.Web;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace BioEngine.Core.Site
 {
@@ -61,7 +60,7 @@ namespace BioEngine.Core.Site
         public virtual async Task<IActionResult> ListAsync()
         {
             var (items, itemsCount) =
-                await Repository.GetAllAsync(GetQueryContext(), entities => entities.Where(e => e.IsPublished));
+                await Repository.GetAllAsync(entities => ConfigureQuery(entities.Where(e => e.IsPublished)));
             return View("List", new ListViewModel<TEntity>(GetPageContext(), items,
                 itemsCount, Page, ItemsPerPage));
         }
@@ -69,7 +68,7 @@ namespace BioEngine.Core.Site
         public virtual async Task<IActionResult> ListPageAsync(int page)
         {
             var (items, itemsCount) =
-                await Repository.GetAllAsync(GetQueryContext(page), entities => entities.Where(e => e.IsPublished));
+                await Repository.GetAllAsync(entities => ConfigureQuery(entities.Where(e => e.IsPublished), page));
             return View("List", new ListViewModel<TEntity>(GetPageContext(), items,
                 itemsCount, Page, ItemsPerPage));
         }
@@ -86,41 +85,37 @@ namespace BioEngine.Core.Site
             return View(new EntityViewModel<TEntity>(GetPageContext(), entity, ContentEntityViewMode.Entity));
         }
 
-        protected void BuildQueryContext(QueryContext context, int page = 0)
+        protected IQueryable<T> BuildQueryContext<T>(IQueryable<T> query, int page = 0) where T : IEntity, ISiteEntity
         {
+            var offset = 0;
             if (page > 0)
             {
                 Page = page;
-                context.Offset = (Page - 1) * ItemsPerPage;
+                offset = (Page - 1) * ItemsPerPage;
             }
             else if (ControllerContext.HttpContext.Request.Query.ContainsKey("page"))
             {
                 Page = int.Parse(ControllerContext.HttpContext.Request.Query["page"]);
                 if (Page < 1) Page = 1;
-                context.Offset = (Page - 1) * ItemsPerPage;
+                offset = (Page - 1) * ItemsPerPage;
             }
 
-            context.SetSite(Site);
+            return query.ForSite(Site).Skip(offset).Take(ItemsPerPage);
         }
 
         [PublicAPI]
-        protected QueryContext<TEntity> GetQueryContext(int page = 0)
+        protected IQueryable<T> ConfigureQuery<T>(IQueryable<T> query, int page = 0) where T : IEntity, ISiteEntity
         {
-            var context = HttpContext.RequestServices.GetRequiredService<QueryContext<TEntity>>();
-            context.Limit = ItemsPerPage;
-
-            BuildQueryContext(context, page);
-
             if (ControllerContext.HttpContext.Request.Query.ContainsKey("order"))
             {
-                context.SetOrderByString(ControllerContext.HttpContext.Request.Query["order"]);
+                query = query.OrderByString(ControllerContext.HttpContext.Request.Query["order"]);
             }
             else
             {
-                context.SetOrderByDescending(e => e.DateUpdated);
+                query = query.OrderByDescending(e => e.DateUpdated);
             }
 
-            return context;
+            return BuildQueryContext(query);
         }
     }
 }
