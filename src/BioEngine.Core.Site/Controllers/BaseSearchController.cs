@@ -68,7 +68,7 @@ namespace BioEngine.Core.Site.Controllers
             var provider = GetSearchProvider<T>();
             if (provider != null)
             {
-                return await provider.CountAsync(query);
+                return await provider.CountAsync(query, Site);
             }
 
             return 0;
