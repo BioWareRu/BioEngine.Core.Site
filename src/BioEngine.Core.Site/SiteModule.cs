@@ -41,7 +41,7 @@ namespace BioEngine.Core.Site
         }
 
         [UsedImplicitly]
-        [SuppressMessage("AsyncUsage.CSharp.Naming", "UseAsyncSuffix", Justification = "Reviewed.")]
+        [SuppressMessage("ReSharper", "VSTHRD200")]
         public async Task Invoke(HttpContext context)
         {
             Entities.Site site = null;
