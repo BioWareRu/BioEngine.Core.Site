@@ -119,6 +119,19 @@ namespace BioEngine.Core.Site.Model
         }
     }
 
+    public class SectionContentListViewModel<TSection, TContent> : ListViewModel<TContent>
+        where TContent : ContentItem where TSection : Section
+    {
+        public new TSection Section { get; }
+
+        public SectionContentListViewModel(PageViewModelContext context, TSection section, TContent[] items,
+            int totalItems, int page,
+            int itemsPerPage) : base(context, items, totalItems, page, itemsPerPage)
+        {
+            Section = section;
+        }
+    }
+
     public class EntityViewModel<TEntity> : PageViewModel where TEntity : class, IEntity, IRoutable
     {
         public TEntity Entity { get; }
@@ -199,7 +212,8 @@ namespace BioEngine.Core.Site.Model
         public int CommentsCount { get; }
         public Uri CommentsUri { get; }
 
-        public ContentItemViewModel(PageViewModelContext context, ContentItem entity, int commentsCount, Uri commentsUri,
+        public ContentItemViewModel(PageViewModelContext context, ContentItem entity, int commentsCount,
+            Uri commentsUri,
             ContentEntityViewMode mode = ContentEntityViewMode.List) :
             base(context, entity, mode)
         {

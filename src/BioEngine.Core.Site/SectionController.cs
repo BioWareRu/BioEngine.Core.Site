@@ -1,29 +1,25 @@
-using System.Linq;
 using System.Threading.Tasks;
 using BioEngine.Core.Abstractions;
 using BioEngine.Core.Entities;
-using BioEngine.Core.Extensions;
 using BioEngine.Core.Repository;
 using BioEngine.Core.Site.Model;
 using BioEngine.Core.Web;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BioEngine.Core.Site
 {
     public abstract class SectionController<TSection, TRepository> : SiteController<TSection, TRepository>
         where TSection : Section, IEntity where TRepository : ContentEntityRepository<TSection>
     {
-        private readonly ContentItemsRepository _contentItemsRepository;
-
         protected SectionController(
-            BaseControllerContext<TSection, TRepository> context,
-            ContentItemsRepository contentItemsRepository) :
+            BaseControllerContext<TSection, TRepository> context) :
             base(context)
         {
-            _contentItemsRepository = contentItemsRepository;
         }
 
-        protected virtual async Task<IActionResult> ShowContentAsync(string[] types, string url, int page)
+        protected virtual async Task<IActionResult> ShowContentAsync<TContent>(string url, int page = 0)
+            where TContent : ContentItem
         {
             var section = await Repository.GetAsync(entities => entities.Where(e => e.Url == url && e.IsPublished));
             if (section == null)
@@ -31,20 +27,13 @@ namespace BioEngine.Core.Site
                 return NotFound();
             }
 
-            var (items, itemsCount) = await _contentItemsRepository.GetAllAsync(queryable =>
-                ConfigureQuery(queryable.ForSection(section).Where(c => types.Contains(c.Type) && c.IsPublished)));
-            return View("Content", new ListViewModel<ContentItem>(GetPageContext(section), items,
+            var contentRepository = HttpContext.RequestServices.GetRequiredService<IBioRepository<TContent>>();
+            var (items, itemsCount) = await contentRepository.GetAllAsync(queryable =>
+                ConfigureQuery(queryable, page).ForSection(section)
+                    .Where(c => c.IsPublished));
+            return View("Content", new SectionContentListViewModel<TSection, TContent>(GetPageContext(section), section,
+                items,
                 itemsCount, Page, ItemsPerPage));
-        }
-
-        public virtual Task<IActionResult> PostsAsync(string[] types, string url)
-        {
-            return ShowContentAsync(types, url, 0);
-        }
-
-        public virtual Task<IActionResult> PostsPageAsync(string[] types, string url, int page)
-        {
-            return ShowContentAsync(types, url, page);
         }
 
         protected virtual PageViewModelContext GetPageContext(TSection section)
