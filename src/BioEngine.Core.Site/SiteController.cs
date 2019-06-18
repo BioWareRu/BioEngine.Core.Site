@@ -1,8 +1,6 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using BioEngine.Core.Abstractions;
-using BioEngine.Core.Extensions;
 using BioEngine.Core.Repository;
 using BioEngine.Core.Site.Model;
 using BioEngine.Core.Web;
@@ -58,16 +56,14 @@ namespace BioEngine.Core.Site
 
         public virtual async Task<IActionResult> ListAsync()
         {
-            var (items, itemsCount) =
-                await Repository.GetAllAsync(entities => ConfigureQuery(entities.Where(e => e.IsPublished)));
+            var (items, itemsCount) = await GetAllAsync(entities => entities.Where(e => e.IsPublished));
             return View("List", new ListViewModel<TEntity>(GetPageContext(), items,
                 itemsCount, Page, ItemsPerPage));
         }
 
         public virtual async Task<IActionResult> ListPageAsync(int page)
         {
-            var (items, itemsCount) =
-                await Repository.GetAllAsync(entities => ConfigureQuery(entities.Where(e => e.IsPublished), page));
+            var (items, itemsCount) = await GetAllAsync(entities => entities.Where(e => e.IsPublished), page);
             return View("List", new ListViewModel<TEntity>(GetPageContext(), items,
                 itemsCount, Page, ItemsPerPage));
         }
@@ -84,8 +80,19 @@ namespace BioEngine.Core.Site
             return View(new EntityViewModel<TEntity>(GetPageContext(), entity, ContentEntityViewMode.Entity));
         }
 
-        protected IQueryable<T> BuildQueryContext<T>(IQueryable<T> query, int page = 0) where T : IEntity, ISiteEntity
+        [PublicAPI]
+        protected BioRepositoryQuery<T> ConfigureQuery<T>(BioRepositoryQuery<T> query, int page = 0)
+            where T : class, IEntity, ISiteEntity
         {
+            if (ControllerContext.HttpContext.Request.Query.ContainsKey("order"))
+            {
+                query = query.OrderByString(ControllerContext.HttpContext.Request.Query["order"]);
+            }
+            else
+            {
+                query = query.OrderByDescending(e => e.DateUpdated);
+            }
+
             var offset = 0;
             if (page > 0)
             {
@@ -103,18 +110,10 @@ namespace BioEngine.Core.Site
         }
 
         [PublicAPI]
-        protected IQueryable<T> ConfigureQuery<T>(IQueryable<T> query, int page = 0) where T : IEntity, ISiteEntity
+        protected Task<(TEntity[] items, int itemsCount)> GetAllAsync(
+            Func<BioRepositoryQuery<TEntity>, BioRepositoryQuery<TEntity>>? configureQuery, int page = 0)
         {
-            if (ControllerContext.HttpContext.Request.Query.ContainsKey("order"))
-            {
-                query = query.OrderByString(ControllerContext.HttpContext.Request.Query["order"]);
-            }
-            else
-            {
-                query = query.OrderByDescending(e => e.DateUpdated);
-            }
-
-            return BuildQueryContext(query);
+            return Repository.GetAllAsync(entities => ConfigureQuery(configureQuery(entities), page));
         }
     }
 }
